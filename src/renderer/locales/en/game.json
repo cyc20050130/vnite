@@ -1,4 +1,18 @@
 {
+  "archivePassword": {
+    "title": "Archive password required",
+    "hint": "These archives need a password. Paste one password per line; they will be tried in order and extraction retried automatically.",
+    "placeholder": "One password per line",
+    "submit": "Add and retry",
+    "close": "Close",
+    "ignore": "Ignore",
+    "empty": "Enter at least one password",
+    "tried": "{{count}} password(s) tried",
+    "headerEncrypted": "Header encrypted",
+    "dataEncrypted": "Data encrypted",
+    "retried": "Extracted {{count}} archive(s)",
+    "stillFailing": "{{count}} still failing"
+  },
   "archivePanel": {
     "tab": "Archive",
     "status": "Status",

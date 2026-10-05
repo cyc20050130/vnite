@@ -4,6 +4,7 @@ import { Sidebar } from '~/components/Sidebar'
 import { ThemeProvider } from '~/components/ThemeProvider'
 import { Titlebar } from '~/components/Titlebar'
 import { DragContainer } from '~/pages/DragContainer'
+import { ArchivePasswordDialog } from '~/pages/ArchivePassword'
 import { GameAdder } from '~/pages/GameAdder'
 import { GameBatchAdder } from '~/pages/GameBatchAdder'
 import { GameMetadataUpdaterDialog } from '~/pages/GameMetadataUpdater'
@@ -40,6 +41,7 @@ export function RootLayout(): React.JSX.Element {
       </div>
       <GameAdder />
       <GameBatchAdder />
+      <ArchivePasswordDialog />
       <Toaster />
       <UpdateDialog />
       <Importer />

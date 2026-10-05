@@ -10,7 +10,8 @@
       "columns": {
         "name": "游戏名称",
         "releaseDate": "发行日期",
-        "developers": "开发商"
+        "developers": "开发商",
+        "source": "来源"
       },
       "unknown": "未知",
       "selected": "已选择游戏: {{name}}"
@@ -63,7 +64,8 @@
         "bangumi": "Bangumi",
         "igdb": "IGDB",
         "ymgal": "YMGal",
-        "dlsite": "DLsite"
+        "dlsite": "DLsite",
+        "aggregate": "聚合搜索"
       }
     }
   },

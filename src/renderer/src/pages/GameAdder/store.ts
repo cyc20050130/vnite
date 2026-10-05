@@ -10,6 +10,8 @@ export type GameList = {
   name: string
   releaseDate: string
   developers: string[]
+  source?: string
+  sourceName?: string
 }[]
 
 export type GameAdderPage = 'search' | 'games' | 'backgrounds'

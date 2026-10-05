@@ -1,3 +1,4 @@
+import { Badge } from '@ui/badge'
 import { cn } from '~/utils'
 import { Card, CardContent } from '~/components/ui/card'
 import { ScrollArea } from '~/components/ui/scroll-area'
@@ -16,7 +17,7 @@ import { useTranslation } from 'react-i18next'
 
 export function GameList(): React.JSX.Element {
   const { t } = useTranslation('adder')
-  const { setName, dataSourceId, setDataSourceId, gameList } = useGameAdderStore()
+  const { setName, dataSourceId, setDataSourceId, setDataSource, gameList } = useGameAdderStore()
 
   return (
     <div className={cn('w-[60vw] h-[80vh] lg:h-[85vh] p-3')}>
@@ -37,13 +38,17 @@ export function GameList(): React.JSX.Element {
                       <TableHead className={cn('w-[17vw] overflow-hidden')}>
                         {t('gameAdder.gameList.columns.developers')}
                       </TableHead>
+                      <TableHead className={cn('w-[8vw] overflow-hidden')}>
+                        {t('gameAdder.gameList.columns.source')}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {gameList.map((game) => (
                       <TableRow
-                        key={game.name}
+                        key={(game.source ? game.source + ':' : '') + game.id + ':' + game.name}
                         onClick={() => {
+                          if (game.source) setDataSource(game.source)
                           setDataSourceId(game.id)
                           setName(game.name)
                           toast.success(t('gameAdder.gameList.selected', { name: game.name }))
@@ -71,6 +76,17 @@ export function GameList(): React.JSX.Element {
                               ? t('gameAdder.gameList.unknown')
                               : game.developers.join(', ')}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          {game.sourceName || game.source ? (
+                            <Badge variant="secondary">
+                              {game.sourceName || game.source}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">
+                              {t('gameAdder.gameList.unknown')}
+                            </span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

@@ -492,17 +492,37 @@ export class GameScanner extends EventEmitter {
           searchName = this.normalizeFolderName(searchName)
         }
 
-        // Use folder/archive name as the search name, and pass the archive path so
-        // providers such as DLsite can extract an RJ/VJ id from it.
-        const gameResults = await scraperManager.searchGames(
-          dataSource,
-          searchName,
-          gamePath ?? folder.dirPath
+        // Prefer multi-source aggregate search when enabled; otherwise single source.
+        // The archive path is forwarded so providers such as DLsite can extract an RJ/VJ id.
+        const aggregateEnabled = await ConfigDBManager.getConfigValue(
+          'game.scraper.common.aggregateSearch'
         )
+        let match: { id: string; name: string; source?: string } | null = null
+        if (aggregateEnabled) {
+          const aggregateProviders = await ConfigDBManager.getConfigValue(
+            'game.scraper.common.aggregateProviders'
+          )
+          const aggregated = await scraperManager.aggregateSearchGames(searchName, {
+            gamePath: gamePath ?? folder.dirPath,
+            providers: aggregateProviders
+          })
+          if (aggregated.items.length > 0) {
+            const top = aggregated.items[0]
+            match = { id: top.id, name: top.name, source: top.source }
+          }
+        } else {
+          const gameResults = await scraperManager.searchGames(
+            dataSource,
+            searchName,
+            gamePath ?? folder.dirPath
+          )
+          if (gameResults && gameResults.length > 0) {
+            const first = gameResults[0]
+            match = { id: first.id, name: first.name, source: dataSource }
+          }
+        }
 
-        if (gameResults && gameResults.length > 0) {
-          // Use the first result as a match
-          const match = gameResults[0]
+        if (match) {
 
           // Get the target collection from scanner config
           const scannerList = await ConfigDBManager.getConfigLocalValue('game.scanner.list')
@@ -567,7 +587,7 @@ export class GameScanner extends EventEmitter {
           }
 
           const dbId = await addGameToDB({
-            dataSource,
+            dataSource: match.source ?? dataSource,
             dataSourceId: match.id,
             dirPath: folder.dirPath,
             gamePath,

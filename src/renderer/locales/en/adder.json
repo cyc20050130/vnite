@@ -10,7 +10,8 @@
       "columns": {
         "name": "Game Name",
         "releaseDate": "Release Date",
-        "developers": "Developers"
+        "developers": "Developers",
+        "source": "Source"
       },
       "unknown": "Unknown",
       "selected": "Selected game: {{name}}"
@@ -63,7 +64,8 @@
         "bangumi": "Bangumi",
         "igdb": "IGDB",
         "ymgal": "YMGal",
-        "dlsite": "DLsite"
+        "dlsite": "DLsite",
+        "aggregate": "Aggregate search"
       }
     }
   },

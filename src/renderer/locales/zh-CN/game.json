@@ -1,4 +1,18 @@
 {
+  "archivePassword": {
+    "title": "需要压缩包密码",
+    "hint": "以下压缩包需要密码才能解压。每行一个密码粘贴进来，会自动依次尝试并重试。",
+    "placeholder": "每行一个密码",
+    "submit": "添加并重试",
+    "close": "关闭",
+    "ignore": "忽略",
+    "empty": "请先输入至少一个密码",
+    "tried": "已尝试 {{count}} 个密码",
+    "headerEncrypted": "仅加密文件表",
+    "dataEncrypted": "加密数据",
+    "retried": "已成功解压 {{count}} 个",
+    "stillFailing": "仍有 {{count}} 个失败"
+  },
   "archivePanel": {
     "tab": "压缩包",
     "status": "状态",

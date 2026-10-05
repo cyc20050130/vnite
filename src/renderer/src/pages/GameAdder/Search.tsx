@@ -18,6 +18,8 @@ import { cn } from '~/utils'
 import { GameList, useGameAdderStore } from './store'
 import { useGameLocalState } from '~/hooks'
 
+const AGGREGATE = '__aggregate__'
+
 export function Search({ className }: { className?: string }): React.JSX.Element {
   const { t } = useTranslation('adder')
   const {
@@ -100,9 +102,32 @@ export function Search({ className }: { className?: string }): React.JSX.Element
       toast.warning(t('gameAdder.search.notifications.enterName'))
       return
     }
+    const aggregate = dataSource === AGGREGATE
     toast.promise(
       (async (): Promise<GameList> => {
-        const result = await ipcManager.invoke('scraper:search-games', dataSource, inputName)
+        let result: GameList
+        if (aggregate) {
+          const aggregated = await ipcManager.invoke(
+            'scraper:aggregate-search-games',
+            inputName,
+            { gamePath: gamePath || dirPath || undefined }
+          )
+          result = aggregated.items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            releaseDate: item.releaseDate,
+            developers: item.developers,
+            source: item.source,
+            sourceName: item.sourceName
+          }))
+        } else {
+          result = await ipcManager.invoke(
+            'scraper:search-games',
+            dataSource,
+            inputName,
+            gamePath || dirPath || undefined
+          )
+        }
         if (result.length === 0) {
           throw new Error(t('gameAdder.search.notifications.notFound'))
         }
@@ -208,6 +233,9 @@ export function Search({ className }: { className?: string }): React.JSX.Element
               <SelectGroup>
                 <SelectLabel>{t('gameAdder.search.dataSources.label')}</SelectLabel>
                 <SelectItem value="none">{t('gameAdder.search.dataSources.none')}</SelectItem>
+                <SelectItem value={AGGREGATE}>
+                  {t('gameAdder.search.dataSources.aggregate')}
+                </SelectItem>
                 {availableDataSources.map((provider) => (
                   <SelectItem key={provider.id} value={provider.id}>
                     {provider.name}
@@ -239,10 +267,13 @@ export function Search({ className }: { className?: string }): React.JSX.Element
               <Button onClick={searchGames}>{t('gameAdder.search.searchButton')}</Button>
             </div>
 
-            {/* Game ID Input */}
+            {/* Game ID Input (not applicable to aggregate search) */}
+            {dataSource !== AGGREGATE && (
             <div className={cn('whitespace-nowrap select-none')}>
               {t('gameAdder.search.gameId')}
             </div>
+            )}
+            {dataSource !== AGGREGATE && (
             <div className={cn('flex flex-row gap-3')}>
               <Input
                 className={cn('flex-1')}
@@ -257,6 +288,7 @@ export function Search({ className }: { className?: string }): React.JSX.Element
               />
               <Button onClick={recognizeGame}>{t('gameAdder.search.recognizeButton')}</Button>
             </div>
+            )}
           </>
         ) : (
           <>
