@@ -1,4 +1,13 @@
 {
+  "playTags": {
+    "title": "Play tags",
+    "category": {
+      "act": "Acts",
+      "gameplay": "Gameplay",
+      "theme": "Theme",
+      "content": "Content"
+    }
+  },
   "archivePassword": {
     "title": "Archive password required",
     "hint": "These archives need a password. Paste one password per line; they will be tried in order and extraction retried automatically.",

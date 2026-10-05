@@ -31,6 +31,11 @@ export type AggregatedSearchResult = {
   errors: AggregatedSearchError[]
 }
 
+export type GamePlayTag = {
+  name: string
+  category: string
+}
+
 export type GameMetadata = {
   name: string
   originalName: string | null
@@ -42,6 +47,7 @@ export type GameMetadata = {
     url: string
   }[]
   tags: string[]
+  playTags?: GamePlayTag[]
   publishers?: string[]
   genres?: string[]
   platforms?: string[]

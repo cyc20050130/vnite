@@ -30,6 +30,7 @@ export interface VNTag {
   name: string
   rating: number
   spoiler: number
+  category?: string
 }
 
 export interface VNExtLink {

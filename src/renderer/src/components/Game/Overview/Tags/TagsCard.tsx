@@ -16,6 +16,7 @@ export function TagsCard({
 }): React.JSX.Element {
   const { t } = useTranslation('game')
   const [tags, setTags] = useGameState(gameId, 'metadata.tags')
+  const [playTags] = useGameState(gameId, 'metadata.playTags')
   const [originalName] = useGameState(gameId, 'metadata.originalName')
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -23,6 +24,16 @@ export function TagsCard({
   const handleSelectTags = (newTags: string[]): void => {
     setTags(newTags)
   }
+
+  const groupedPlayTags = React.useMemo(() => {
+    const map = new Map<string, string[]>()
+    for (const tag of playTags ?? []) {
+      const list = map.get(tag.category) ?? []
+      list.push(tag.name)
+      map.set(tag.category, list)
+    }
+    return Array.from(map.entries())
+  }, [playTags])
 
   return (
     <div className={cn(className, 'group')}>
@@ -61,6 +72,30 @@ export function TagsCard({
               ))}
         </div>
       </div>
+
+      {groupedPlayTags.length > 0 && (
+        <div className={cn('mt-3 flex flex-col gap-1')}>
+          <div className={cn('font-bold select-none')}>{t('playTags.title')}</div>
+          <SeparatorDashed />
+          {groupedPlayTags.map(([category, names]) => (
+            <div key={category} className="flex gap-2 text-sm">
+              <span className={cn('w-20 shrink-0 text-muted-foreground')}>
+                {t('playTags.category.' + category)}
+              </span>
+              <div className="flex flex-wrap gap-x-1 gap-y-[6px]">
+                {names.map((name) => (
+                  <span
+                    key={name}
+                    className="rounded bg-secondary px-1.5 py-0.5 text-secondary-foreground"
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <TagsDialog gameId={gameId} isOpen={isEditDialogOpen} setIsOpen={setIsEditDialogOpen} />
 

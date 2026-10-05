@@ -119,6 +119,19 @@ export async function searchVNDBGames(gameName: string): Promise<SimpleGameInfo[
   }
 }
 
+function mapVndbTagCategory(category?: string): string {
+  switch (category) {
+    case 'ero':
+      return 'act'
+    case 'tech':
+      return 'gameplay'
+    case 'cont':
+      return 'content'
+    default:
+      return 'theme'
+  }
+}
+
 export async function getVNMetadata(vnId: string): Promise<GameMetadata> {
   const formattedId = vnId.startsWith('v') ? vnId : `v${vnId}`
 
@@ -127,7 +140,7 @@ export async function getVNMetadata(vnId: string): Promise<GameMetadata> {
     'released',
     'description',
     'developers{name,original}',
-    'tags{rating,name,spoiler}',
+    'tags{rating,name,spoiler,category}',
     'extlinks{label,url}',
     'staff{role,name,original}'
   ]
@@ -173,6 +186,10 @@ export async function getVNMetadata(vnId: string): Promise<GameMetadata> {
         { label: 'VNDB', url: `https://vndb.org/${formattedId}` }
       ],
       tags: vn.tags?.sort((a, b) => b.rating - a.rating).map((tag) => tag.name) ?? [],
+      playTags: (vn.tags ?? []).map((tag) => ({
+        name: tag.name,
+        category: mapVndbTagCategory(tag.category)
+      })),
       extra: staffData
     }
   } catch (error) {
@@ -188,7 +205,7 @@ export async function getVNMetadataByName(vnName: string): Promise<GameMetadata>
     'released',
     'description',
     'developers{name,original}',
-    'tags{rating,name,spoiler}',
+    'tags{rating,name,spoiler,category}',
     'extlinks{label,url}',
     'staff{role,name,original}'
   ]
@@ -239,6 +256,10 @@ export async function getVNMetadataByName(vnName: string): Promise<GameMetadata>
         { label: 'VNDB', url: `https://vndb.org/${vn.id}` }
       ],
       tags: vn.tags?.sort((a, b) => b.rating - a.rating).map((tag) => tag.name) ?? [],
+      playTags: (vn.tags ?? []).map((tag) => ({
+        name: tag.name,
+        category: mapVndbTagCategory(tag.category)
+      })),
       extra: staffData
     }
   } catch (error) {

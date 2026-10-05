@@ -1,4 +1,13 @@
 {
+  "playTags": {
+    "title": "玩法标签",
+    "category": {
+      "act": "性行为",
+      "gameplay": "玩法机制",
+      "theme": "题材",
+      "content": "内容"
+    }
+  },
   "archivePassword": {
     "title": "需要压缩包密码",
     "hint": "以下压缩包需要密码才能解压。每行一个密码粘贴进来，会自动依次尝试并重试。",

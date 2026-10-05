@@ -296,6 +296,14 @@ export async function addGameToDB({
       gameDoc.metadata.version = version
     }
 
+    if (metadata.playTags && metadata.playTags.length > 0) {
+      gameDoc.metadata.playTags = metadata.playTags.map((tag) => ({
+        name: tag.name,
+        category: tag.category,
+        sources: [dataSource]
+      }))
+    }
+
     if (sourceType === 'archive') {
       // Archive-backed game: keep it compressed, never auto-extract at add time.
       gameLocalDoc.launcher.mode = 'archive'

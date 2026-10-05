@@ -22,6 +22,12 @@ export interface gameDoc {
     platforms: string[]
     genres: string[]
     tags: string[]
+    /** Structured play tags (act / gameplay / theme / content). */
+    playTags: {
+      name: string
+      category: string
+      sources: string[]
+    }[]
     relatedSites: {
       label: string
       url: string
@@ -272,6 +278,7 @@ export const DEFAULT_GAME_VALUES: Readonly<gameDoc> = {
     platforms: [] as string[],
     genres: [] as string[],
     tags: [] as string[],
+    playTags: [] as { name: string; category: string; sources: string[] }[],
     relatedSites: [] as { label: string; url: string }[],
     steamId: '',
     vndbId: '',
