@@ -5,6 +5,7 @@ import path from 'path'
 export interface SevenZipRunOptions {
   password?: string
   timeoutMs?: number
+  cwd?: string
   onProgress?: (percent: number) => void
 }
 
@@ -80,7 +81,7 @@ export async function run7z(
   if (options.password) fullArgs.push('-p' + options.password)
 
   return await new Promise<SevenZipRunResult>((resolve, reject) => {
-    const child = spawn(bin, fullArgs, { windowsHide: true })
+    const child = spawn(bin, fullArgs, { windowsHide: true, cwd: options.cwd })
     let stdout = ''
     let stderr = ''
     let buffer = ''
@@ -119,6 +120,38 @@ export async function run7z(
       resolve({ code, stdout, stderr, bin })
     })
   })
+}
+
+/** Extract an archive into targetDir (targetDir is created by 7-Zip). */
+export async function extractArchive(
+  archivePath: string,
+  targetDir: string,
+  options: SevenZipRunOptions = {}
+): Promise<SevenZipRunResult> {
+  return run7z(['x', '-y', '-bsp1', '-o' + targetDir, '--', archivePath], options)
+}
+
+/** Create an archive from a folder; cwd is the folder's parent so paths stay relative. */
+export async function compressFolder(
+  sourceParentDir: string,
+  folderName: string,
+  targetArchive: string,
+  options: SevenZipRunOptions & { format?: '7z' | 'zip'; level?: number } = {}
+): Promise<SevenZipRunResult> {
+  const format = options.format ?? '7z'
+  const level = options.level ?? 9
+  return run7z(
+    ['a', '-t' + format, '-mx=' + level, '-y', '-bsp1', '--', targetArchive, folderName],
+    { ...options, cwd: options.cwd ?? sourceParentDir }
+  )
+}
+
+/** Verify archive integrity (and password if provided). */
+export async function testArchive(
+  archivePath: string,
+  options: SevenZipRunOptions = {}
+): Promise<SevenZipRunResult> {
+  return run7z(['t', '-bsp1', '--', archivePath], options)
 }
 
 export function isPasswordError(text: string): boolean {

@@ -67,6 +67,19 @@ export interface AppEvents {
     status: 'unplayed' | 'playing' | 'partial' | 'finished' | 'multiple' | 'shelved'
   }
 
+  'archive:state-changed': {
+    gameId: string
+    from: string
+    to: string
+    error?: string
+  }
+
+  'archive:job-progress': {
+    gameId: string
+    jobType: 'extract' | 'compress'
+    percent: number
+  }
+
   'theme:preset-changed': {
     preset: string
   }

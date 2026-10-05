@@ -1,5 +1,6 @@
 import { setupAccountIPC } from '~/features/account'
 import { setupAdderIPC } from '~/features/adder'
+import { setupArchive } from '~/features/archive'
 import { setupDatabaseIPC } from '~/features/database'
 import { setupGameIPC } from '~/features/game/ipc'
 import { setupImporterIPC } from '~/features/importer'
@@ -18,6 +19,7 @@ import { setupEventBusIPC } from '../events'
 export function setupIPC(): void {
   setupAccountIPC()
   setupAdderIPC()
+  setupArchive()
   setupDatabaseIPC()
   setupGameIPC()
   setupImporterIPC()

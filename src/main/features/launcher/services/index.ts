@@ -4,6 +4,7 @@ import log from 'electron-log/main.js'
 import { ConfigDBManager, GameDBManager } from '~/core/database'
 import { eventBus } from '~/core/events'
 import { ipcManager } from '~/core/ipc'
+import { ensureExtracted } from '~/features/archive'
 import { delay } from '~/utils'
 import { fileLauncher, scriptLauncher, urlLauncher } from './launcher'
 import { applyLauncherPreset } from './preset'
@@ -29,6 +30,10 @@ export async function launcher(gameId: string): Promise<void> {
     )
 
     if (mode === 'file') {
+      await fileLauncher(gameId)
+    } else if (mode === 'archive') {
+      // Extract on first launch, then launch the executable inside the extract dir.
+      await ensureExtracted(gameId)
       await fileLauncher(gameId)
     } else if (mode === 'url') {
       await urlLauncher(gameId)

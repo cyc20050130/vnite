@@ -13,6 +13,7 @@ import { eventBus } from '~/core/events'
 import { ActiveGameInfo } from '~/features/game'
 import { Mutex } from 'async-mutex'
 import { removeMonitorStub } from './nativeMonitor'
+import { archiveOnSessionEnd } from '~/features/archive'
 import { TimerStatus } from '@appTypes/models'
 
 async function getProcessList(): Promise<
@@ -671,6 +672,9 @@ export class GameMonitor {
     if (savePaths.some(Boolean)) {
       await backupGameSave(this.options.gameId)
     }
+
+    // Archive-backed games: re-compress when the game has been marked as finished.
+    await archiveOnSessionEnd(this.options.gameId)
 
     ipcManager.send('game:exited', this.options.gameId)
     eventBus.emit(
