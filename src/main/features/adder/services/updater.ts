@@ -519,6 +519,7 @@ export async function updateGameMetadata({
     }
 
     // Characters are refreshed whenever we do a full scrape.
+    let staleCharacterIds: string[] = []
     if (updateAll) {
       try {
         const characterLists = await scraperManager.getGameCharactersList({
@@ -527,6 +528,10 @@ export async function updateGameMetadata({
         })
         const bestCharacters = characterLists[0]
         if (bestCharacters) {
+          const nextIds = new Set(bestCharacters.characters.map((character) => character.id))
+          staleCharacterIds = (gameDoc.metadata.characters ?? [])
+            .map((character) => character.sourceId)
+            .filter((id) => id && !nextIds.has(id))
           ;(updatedMetadata as any).characters = bestCharacters.characters.map((character) => ({
             id: character.id,
             source: bestCharacters.dataSource,
@@ -1049,6 +1054,13 @@ export async function updateGameMetadata({
         gameDoc.metadata = updatedMetadata
         await GameDBManager.setGame(dbId, gameDoc)
       }
+    }
+
+    // Remove attachments of characters that no longer exist.
+    for (const characterId of staleCharacterIds) {
+      await GameDBManager.removeGameCharacterImage(dbId, characterId).catch((error) => {
+        log.warn('[Updater] Failed to remove stale character image: ' + String(error))
+      })
     }
 
     await cacheDescriptionImages(updatedMetadata.description, dbId)
