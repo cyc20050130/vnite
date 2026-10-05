@@ -76,6 +76,25 @@ export class Transformer {
         this.applyProcessorRules(transformedMetadata, 'genres', transformer.processors.genres)
         this.applyProcessorRules(transformedMetadata, 'tags', transformer.processors.tags)
 
+        // Play tags reuse the "tags" rules for localisation (the shipped VNDB Chinese
+        // preset covers these names).
+        const playTags = (
+          transformedMetadata as {
+            playTags?: { name: string; category: string; sources?: string[] }[]
+          }
+        ).playTags
+        if (Array.isArray(playTags) && playTags.length > 0) {
+          ;(transformedMetadata as any).playTags = playTags.map((tag) => {
+            let value = tag.name
+            for (const rule of transformer.processors.tags) {
+              for (const pattern of rule.match) {
+                value = value.replace(new RegExp(pattern, 'g'), rule.replace)
+              }
+            }
+            return { ...tag, name: value }
+          })
+        }
+
         // Process extra fields (director, scenario, illustration, music, engine, etc.)
         if (transformedMetadata.extra) {
           transformedMetadata.extra = await this.processExtraFields(

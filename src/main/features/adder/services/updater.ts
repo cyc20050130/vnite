@@ -18,6 +18,7 @@ import {
   type GameImageUpscaleOptions
 } from '@appTypes/utils'
 import log from 'electron-log/main'
+import { net } from 'electron'
 import { GameDBManager } from '~/core/database'
 import { ipcManager } from '~/core/ipc'
 import { tryUpscaleGameImage } from '~/features/game'
@@ -494,6 +495,56 @@ export async function updateGameMetadata({
 
     // Ensure ID field always exists
     updatedMetadata[`${dataSource}Id`] = dataSourceId
+
+    // Play tags are structured: merge by name and remember which source provided them.
+    const basePlayTags = (baseMetadata as { playTags?: { name: string; category: string }[] })
+      .playTags
+    if ((updateAll || fieldsToUpdate.includes('tags')) && basePlayTags && basePlayTags.length > 0) {
+      const existing = Array.isArray((updatedMetadata as any).playTags)
+        ? (updatedMetadata as any).playTags
+        : []
+      const merged = new Map<string, { name: string; category: string; sources: string[] }>()
+      for (const tag of existing) {
+        merged.set(tag.name, { ...tag, sources: tag.sources ?? [] })
+      }
+      for (const tag of basePlayTags) {
+        const current = merged.get(tag.name)
+        if (current) {
+          if (!current.sources.includes(dataSource)) current.sources.push(dataSource)
+        } else {
+          merged.set(tag.name, { name: tag.name, category: tag.category, sources: [dataSource] })
+        }
+      }
+      ;(updatedMetadata as any).playTags = Array.from(merged.values())
+    }
+
+    // Characters are refreshed whenever we do a full scrape.
+    if (updateAll) {
+      try {
+        const characterLists = await scraperManager.getGameCharactersList({
+          type: 'id',
+          value: dataSourceId
+        })
+        const bestCharacters = characterLists[0]
+        if (bestCharacters) {
+          ;(updatedMetadata as any).characters = bestCharacters.characters.map((character) => ({
+            id: character.id,
+            source: bestCharacters.dataSource,
+            sourceId: character.id,
+            name: character.name,
+            originalName: character.originalName,
+            imageUrl: character.imageUrl,
+            imageCached: false,
+            description: character.description,
+            traits: character.traits,
+            sex: character.sex,
+            actors: character.actors
+          }))
+        }
+      } catch (error) {
+        log.warn('[Updater] Failed to fetch characters: ' + String(error))
+      }
+    }
 
     // Ensure originalName is not null
     if (updateAll || fieldsToUpdate.includes('originalName')) {
@@ -976,6 +1027,29 @@ export async function updateGameMetadata({
 
     // Execute all database operations in parallel
     await Promise.all(dbPromises)
+
+    // Cache character cover images locally so they stay visible offline.
+    const updatedCharacters = (updatedMetadata as any).characters
+    if (Array.isArray(updatedCharacters) && updatedCharacters.length > 0) {
+      let cachedAny = false
+      for (const entry of updatedCharacters) {
+        if (!entry.imageUrl) continue
+        try {
+          const response = await net.fetch(entry.imageUrl)
+          if (!response.ok) continue
+          const buffer = Buffer.from(await response.arrayBuffer())
+          await GameDBManager.setGameCharacterImage(dbId, entry.sourceId, buffer)
+          entry.imageCached = true
+          cachedAny = true
+        } catch (error) {
+          log.warn('[Updater] Failed to cache character image: ' + String(error))
+        }
+      }
+      if (cachedAny) {
+        gameDoc.metadata = updatedMetadata
+        await GameDBManager.setGame(dbId, gameDoc)
+      }
+    }
 
     await cacheDescriptionImages(updatedMetadata.description, dbId)
   } catch (error) {
