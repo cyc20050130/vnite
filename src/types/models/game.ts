@@ -28,6 +28,20 @@ export interface gameDoc {
       category: string
       sources: string[]
     }[]
+    /** Characters with locally cached cover images. */
+    characters: {
+      id: string
+      source: string
+      sourceId: string
+      name: string
+      originalName?: string
+      imageUrl?: string
+      imageCached?: boolean
+      description?: string
+      traits?: { name: string; group?: string; spoiler?: number }[]
+      sex?: string
+      actors?: string[]
+    }[]
     relatedSites: {
       label: string
       url: string
@@ -279,6 +293,19 @@ export const DEFAULT_GAME_VALUES: Readonly<gameDoc> = {
     genres: [] as string[],
     tags: [] as string[],
     playTags: [] as { name: string; category: string; sources: string[] }[],
+    characters: [] as {
+      id: string
+      source: string
+      sourceId: string
+      name: string
+      originalName?: string
+      imageUrl?: string
+      imageCached?: boolean
+      description?: string
+      traits?: { name: string; group?: string; spoiler?: number }[]
+      sex?: string
+      actors?: string[]
+    }[],
     relatedSites: [] as { label: string; url: string }[],
     steamId: '',
     vndbId: '',

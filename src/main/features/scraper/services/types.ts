@@ -1,4 +1,4 @@
-import { GameList, GameMetadata, ScraperIdentifier } from '@appTypes/utils'
+import { GameList, GameMetadata, ScraperIdentifier, GameCharacter } from '@appTypes/utils'
 export type { ScraperCapabilities } from '@appTypes/utils'
 
 export interface ScraperProvider {
@@ -13,4 +13,5 @@ export interface ScraperProvider {
   getGameCovers?(identifier: ScraperIdentifier): Promise<string[]>
   getGameLogos?(identifier: ScraperIdentifier): Promise<string[]>
   getGameIcons?(identifier: ScraperIdentifier): Promise<string[]>
+  getGameCharacters?(identifier: ScraperIdentifier): Promise<GameCharacter[]>
 }

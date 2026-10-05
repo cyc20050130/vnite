@@ -1,4 +1,11 @@
 {
+  "characters": {
+    "title": "角色",
+    "voice": "声优",
+    "sex": "性别",
+    "traits": "人物标签",
+    "otherTraits": "其他"
+  },
   "playTags": {
     "title": "玩法标签",
     "category": {

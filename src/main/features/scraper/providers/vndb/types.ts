@@ -33,6 +33,26 @@ export interface VNTag {
   category?: string
 }
 
+export interface VNCharacterTrait {
+  name: string
+  group_name?: string
+  spoiler?: number
+}
+
+export interface VNCharacter {
+  id: string
+  name: string
+  original?: string
+  image?: { url: string }
+  description?: string
+  sex?: string[]
+  traits?: VNCharacterTrait[]
+  height?: number | null
+  weight?: number | null
+  birthday?: [number, number] | null
+  blood_type?: string | null
+}
+
 export interface VNExtLink {
   id?: string
   label: string

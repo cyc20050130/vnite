@@ -4,9 +4,10 @@ import {
   getGameMetadataFromVNDB,
   checkGameExistsOnVNDB,
   getGameBackgroundsFromVNDB,
-  getGameCoverFromVNDB
+  getGameCoverFromVNDB,
+  getGameCharactersFromVNDB
 } from './api'
-import { GameList, GameMetadata, ScraperIdentifier } from '@appTypes/utils'
+import { GameList, GameMetadata, ScraperIdentifier, GameCharacter } from '@appTypes/utils'
 
 export const vndbProvider: ScraperProvider = {
   id: 'vndb',
@@ -30,5 +31,9 @@ export const vndbProvider: ScraperProvider = {
 
   async getGameCovers(identifier: ScraperIdentifier): Promise<string[]> {
     return await getGameCoverFromVNDB(identifier)
+  },
+
+  async getGameCharacters(identifier: ScraperIdentifier): Promise<GameCharacter[]> {
+    return await getGameCharactersFromVNDB(identifier)
   }
 }

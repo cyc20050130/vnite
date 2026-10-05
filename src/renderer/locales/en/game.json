@@ -1,4 +1,11 @@
 {
+  "characters": {
+    "title": "Characters",
+    "voice": "Voice",
+    "sex": "Sex",
+    "traits": "Character tags",
+    "otherTraits": "Other"
+  },
   "playTags": {
     "title": "Play tags",
     "category": {

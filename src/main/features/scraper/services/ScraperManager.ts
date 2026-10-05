@@ -15,7 +15,8 @@ import {
   AggregatedSearchOptions,
   AggregatedSearchResult,
   AggregatedGameListItem,
-  AggregatedSearchError
+  AggregatedSearchError,
+  GameCharacter
 } from '@appTypes/utils'
 import { withTimeout } from '~/utils'
 import { Transformer } from '~/features/transformer'
@@ -153,6 +154,46 @@ export class ScraperManager {
       log.error(`[Scraper] Failed to get game wide covers using provider '${providerId}': ${error}`)
       return []
     }
+  }
+
+  public async getGameCharacters(
+    providerId: string,
+    identifier: ScraperIdentifier
+  ): Promise<GameCharacter[]> {
+    try {
+      const provider = this.getProvider(providerId)
+      if (!provider || !provider.getGameCharacters) return []
+      return await provider.getGameCharacters(identifier)
+    } catch (error) {
+      log.error('[Scraper] Failed to get characters from ' + providerId + ': ' + error)
+      return []
+    }
+  }
+
+  /** Fan out character lookups; VNDB first, then other capable providers. */
+  public async getGameCharactersList(
+    identifier: ScraperIdentifier
+  ): Promise<{ dataSource: string; characters: GameCharacter[] }[]> {
+    const preferred = ['vndb', 'bangumi', 'ymgal', 'erogamescape']
+    const capable = this.getProviderIdsWithCapabilities(['getGameCharacters'])
+    const ordered = preferred
+      .filter((id) => capable.includes(id))
+      .concat(capable.filter((id) => !preferred.includes(id)))
+    const settled = await Promise.allSettled(
+      ordered.map(async (providerId) => ({
+        dataSource: providerId,
+        characters: await withTimeout(this.getGameCharacters(providerId, identifier), 8000, providerId)
+      }))
+    )
+    return settled
+      .filter(
+        (result): result is PromiseFulfilledResult<{
+          dataSource: string
+          characters: GameCharacter[]
+        }> => result.status === 'fulfilled'
+      )
+      .map((result) => result.value)
+      .filter((entry) => entry.characters.length > 0)
   }
 
   public async getGameCovers(providerId: string, identifier: ScraperIdentifier): Promise<string[]> {

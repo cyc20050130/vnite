@@ -2,6 +2,7 @@ import { cn } from '~/utils'
 import { Description } from './description'
 import { ExtraInformation } from './extraInformation'
 import { Information } from './Information'
+import { Characters } from './Characters'
 import { RecommendedGamesCard } from './RecommendedGames'
 import { RelatedSites } from './RelatedSites'
 import { Tags } from './Tags'
@@ -17,6 +18,7 @@ export function Overview({ gameId }: { gameId: string }): React.JSX.Element {
       {/* Left/Top area - 3 columns on large screens, full width on small screens */}
       <div className={cn('flex flex-col gap-5 h-full', 'col-span-1 lg:col-span-3')}>
         <Description gameId={gameId} />
+        <Characters gameId={gameId} />
         <Tags gameId={gameId} />
       </div>
 

@@ -8,9 +8,10 @@ import {
   VNWithCover,
   SimpleGameInfo,
   VNTitle,
-  VNStaff
+  VNStaff,
+  VNCharacter
 } from './types'
-import { GameMetadata } from '@appTypes/utils'
+import { GameMetadata, GameCharacter } from '@appTypes/utils'
 import { METADATA_EXTRA_PREDEFINED_KEYS } from '@appTypes/models'
 import { net } from 'electron'
 import { ConfigDBManager } from '~/core/database'
@@ -366,5 +367,85 @@ export async function getGameCoverByName(name: string): Promise<string> {
   } catch (error) {
     console.error(`Error fetching cover for VN ${name}:`, error)
     return ''
+  }
+}
+
+async function fetchVNDBCharacters<T>(params: VNDBRequestParams): Promise<VNDBResponse<T>> {
+  const endpoint = 'https://api.vndb.org/kana/character'
+  const TIMEOUT_MS = 10000
+  const fields = Array.isArray(params.fields) ? params.fields.join(',') : params.fields
+
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
+    const response = await net.fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...params, fields }),
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+    if (!response.ok) {
+      throw new Error('HTTP error! status: ' + response.status)
+    }
+    return (await response.json()) as VNDBResponse<T>
+  } catch (error) {
+    console.error('Error fetching VNDB characters:', error)
+    throw error
+  }
+}
+
+const CHARACTER_FIELDS = [
+  'id',
+  'name',
+  'original',
+  'image{url}',
+  'description',
+  'sex',
+  'traits{name,group_name,spoiler}',
+  'height',
+  'weight',
+  'birthday',
+  'blood_type'
+]
+
+export async function getVNCharacters(vnId: string): Promise<GameCharacter[]> {
+  const formattedId = vnId.startsWith('v') ? vnId : 'v' + vnId
+  try {
+    const data = await fetchVNDBCharacters<VNCharacter>({
+      filters: ['vn', '=', ['id', '=', formattedId]],
+      fields: CHARACTER_FIELDS,
+      results: 50
+    })
+    return (data.results ?? []).map((character) => ({
+      id: character.id,
+      name: character.name,
+      originalName: character.original,
+      imageUrl: character.image?.url,
+      description: character.description ? formatDescription(character.description) : undefined,
+      traits: (character.traits ?? []).map((trait) => ({
+        name: trait.name,
+        group: trait.group_name,
+        spoiler: trait.spoiler
+      })),
+      sex: character.sex?.[0],
+      height: character.height ?? undefined,
+      weight: character.weight ?? undefined,
+      bloodType: character.blood_type ?? undefined
+    }))
+  } catch (error) {
+    console.error('Error fetching characters for VN ' + vnId + ':', error)
+    return []
+  }
+}
+
+export async function getVNCharactersByName(vnName: string): Promise<GameCharacter[]> {
+  try {
+    const games = await searchVNDBGames(vnName)
+    if (!games.length) return []
+    return await getVNCharacters(games[0].id)
+  } catch (error) {
+    console.error('Error fetching characters by name ' + vnName + ':', error)
+    return []
   }
 }

@@ -382,6 +382,66 @@ export class GameDBManager {
     }
   }
 
+  static async setGameCharacterImage(
+    gameId: string,
+    characterId: string,
+    image: Buffer | string
+  ): Promise<void> {
+    try {
+      const webp = await convertToWebP(image)
+      await baseDBManager.putAttachment(
+        this.DB_NAME,
+        gameId,
+        'images/characters/' + characterId + '.webp',
+        webp
+      )
+    } catch (error) {
+      log.error('[GameDB] Error setting character image:', error)
+      throw error
+    }
+  }
+
+  static async getGameCharacterImage<T extends 'buffer' | 'file' = 'buffer'>(
+    gameId: string,
+    characterId: string,
+    format: T = 'buffer' as T
+  ): Promise<T extends 'file' ? string | null : Buffer | null> {
+    try {
+      const attachmentId = 'images/characters/' + characterId + '.webp'
+      if ((await baseDBManager.checkAttachment(this.DB_NAME, gameId, attachmentId)) === false) {
+        return null
+      }
+      if (format === 'file') {
+        return (await baseDBManager.getAttachment(this.DB_NAME, gameId, attachmentId, {
+          format: 'file',
+          filePath: '#temp',
+          ext: 'webp'
+        })) as T extends 'file' ? string | null : Buffer | null
+      }
+      return (await baseDBManager.getAttachment(
+        this.DB_NAME,
+        gameId,
+        attachmentId
+      )) as T extends 'file' ? string | null : Buffer | null
+    } catch (error) {
+      log.error('[GameDB] Error getting character image:', error)
+      return null
+    }
+  }
+
+  static async removeGameCharacterImage(gameId: string, characterId: string): Promise<void> {
+    try {
+      await baseDBManager.removeAttachment(
+        this.DB_NAME,
+        gameId,
+        'images/characters/' + characterId + '.webp'
+      )
+    } catch (error) {
+      log.error('[GameDB] Error removing character image:', error)
+      throw error
+    }
+  }
+
   static async setGameMemoryImage(
     gameId: string,
     memoryId: string,

@@ -14,10 +14,12 @@ import {
   GamePublishersList,
   GameRelatedSitesList,
   GameTagsList,
+  GameCharacter,
   type GameImageUpscaleOptions
 } from '@appTypes/utils'
 import { generateUUID } from '@appUtils'
 import log from 'electron-log/main'
+import { net } from 'electron'
 import fse from 'fs-extra'
 import path from 'path'
 import { ConfigDBManager, GameDBManager } from '~/core/database'
@@ -304,6 +306,34 @@ export async function addGameToDB({
       }))
     }
 
+    // Characters: fetched from the first capable provider (VNDB preferred).
+    // Cover images are cached as attachments right after the document is written.
+    let characterSource: { dataSource: string; characters: GameCharacter[] } | undefined
+    try {
+      const characterLists = await scraperManager.getGameCharactersList({
+        type: 'id',
+        value: dataSourceId
+      })
+      characterSource = characterLists[0]
+      if (characterSource) {
+        gameDoc.metadata.characters = characterSource.characters.map((character) => ({
+          id: character.id,
+          source: characterSource!.dataSource,
+          sourceId: character.id,
+          name: character.name,
+          originalName: character.originalName,
+          imageUrl: character.imageUrl,
+          imageCached: false,
+          description: character.description,
+          traits: character.traits,
+          sex: character.sex,
+          actors: character.actors
+        }))
+      }
+    } catch (error) {
+      log.warn('[Adder] Failed to fetch characters: ' + String(error))
+    }
+
     if (sourceType === 'archive') {
       // Archive-backed game: keep it compressed, never auto-extract at add time.
       gameLocalDoc.launcher.mode = 'archive'
@@ -494,6 +524,29 @@ export async function addGameToDB({
 
     // Execute all database operations (in parallel)
     await Promise.all(dbPromises)
+
+    // Cache character cover images locally so they stay visible offline.
+    if (characterSource && gameDoc.metadata.characters.length > 0) {
+      const byId = new Map(characterSource.characters.map((character) => [character.id, character]))
+      let cachedAny = false
+      for (const entry of gameDoc.metadata.characters) {
+        const remote = byId.get(entry.sourceId)?.imageUrl
+        if (!remote) continue
+        try {
+          const response = await net.fetch(remote)
+          if (!response.ok) continue
+          const buffer = Buffer.from(await response.arrayBuffer())
+          await GameDBManager.setGameCharacterImage(dbId, entry.sourceId, buffer)
+          entry.imageCached = true
+          cachedAny = true
+        } catch (error) {
+          log.warn('[Adder] Failed to cache character image ' + remote + ': ' + String(error))
+        }
+      }
+      if (cachedAny) {
+        await GameDBManager.setGame(dbId, { metadata: gameDoc.metadata })
+      }
+    }
 
     await cacheDescriptionImages(metadata.description, dbId)
 

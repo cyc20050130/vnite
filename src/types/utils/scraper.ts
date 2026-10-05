@@ -36,6 +36,21 @@ export type GamePlayTag = {
   category: string
 }
 
+export type GameCharacter = {
+  id: string
+  name: string
+  originalName?: string
+  imageUrl?: string
+  description?: string
+  traits?: { name: string; group?: string; spoiler?: number }[]
+  sex?: string
+  height?: number
+  weight?: number
+  bloodType?: string
+  actors?: string[]
+  spoiler?: number
+}
+
 export type GameMetadata = {
   name: string
   originalName: string | null
@@ -123,6 +138,7 @@ export type GameInformationList = {
 
 export type ScraperCapabilities =
   | 'searchGames'
+  | 'getGameCharacters'
   | 'checkGameExists'
   | 'getGameMetadata'
   | 'getGameWideCovers'

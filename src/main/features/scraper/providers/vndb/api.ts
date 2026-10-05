@@ -6,9 +6,11 @@ import {
   getGameBackgrounds,
   getGameBackgroundsByName,
   getGameCover,
-  getGameCoverByName
+  getGameCoverByName,
+  getVNCharacters,
+  getVNCharactersByName
 } from './common'
-import { GameList, GameMetadata } from '@appTypes/utils'
+import { GameList, GameMetadata, GameCharacter } from '@appTypes/utils'
 import { ScraperIdentifier } from '@appTypes/utils'
 
 export async function searchGamesFromVNDB(gameName: string): Promise<GameList> {
@@ -33,6 +35,19 @@ export async function getGameMetadataFromVNDB(
   } catch (error) {
     console.error('Error fetching game metadata:', error)
     throw error
+  }
+}
+
+export async function getGameCharactersFromVNDB(
+  identifier: ScraperIdentifier
+): Promise<GameCharacter[]> {
+  try {
+    return identifier.type === 'id'
+      ? await getVNCharacters(identifier.value)
+      : await getVNCharactersByName(identifier.value)
+  } catch (error) {
+    console.error('Error fetching characters:', error)
+    return []
   }
 }
 
