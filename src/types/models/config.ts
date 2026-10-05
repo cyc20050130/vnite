@@ -43,6 +43,16 @@ export interface configDocs {
     ignoreShortSessions: number
   }
   game: {
+    archive: {
+      enabled: boolean
+      scanArchives: boolean
+      aggregateSearch: boolean
+      defaultExtractRoot: string
+      compressFormat: 'auto' | '7z' | 'zip'
+      keepArchiveAfterExtract: boolean
+      autoCompressOnFinished: boolean
+      minArchiveSizeMB: number
+    }
     scraper: {
       common: {
         defaultDataSource: 'steam' | 'vndb' | 'bangumi' | 'ymgal' | 'igdb' | 'dlsite' | string
@@ -384,6 +394,16 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
     ignoreShortSessions: 0
   },
   game: {
+    archive: {
+      enabled: true,
+      scanArchives: true,
+      aggregateSearch: false,
+      defaultExtractRoot: '',
+      compressFormat: 'auto' as const,
+      keepArchiveAfterExtract: false,
+      autoCompressOnFinished: false,
+      minArchiveSizeMB: 1
+    },
     scraper: {
       common: {
         defaultDataSource: 'steam',

@@ -9,11 +9,16 @@ import { ipcManager } from '~/core/ipc'
 import { scraperManager } from '~/features/scraper'
 import { isGamesLoaded } from '~/index'
 import {
+  checkForArchives,
+  checkForExecutables,
   getGameEntityFoldersByHierarchyLevel,
   getGameFolders,
   inferRootPath,
   isPathWithinRoot
 } from '~/utils'
+import { classifyArchive } from '~/features/archive/services/archiveDetect'
+import { guessVersion } from '~/features/archive/services/titleResolver'
+import { listArchive } from '~/features/archive/services/archiveList'
 import { addGameToDB } from './adder'
 
 // Scanner configuration type
@@ -431,7 +436,7 @@ export class GameScanner extends EventEmitter {
    */
   private async processFolder(
     dataSource: string,
-    folder: { name: string; dirPath: string },
+    folder: { name: string; dirPath: string; gamePath?: string; entryKind?: 'folder' | 'archive' },
     scannerId: string,
     normalizeFolderName: boolean
   ): Promise<void> {
@@ -453,17 +458,47 @@ export class GameScanner extends EventEmitter {
           this.scanProgress.scannedGames++
         }
       } else {
+        // Resolve archive-backed entities. Auto mode already carries gamePath;
+        // hierarchy mode may point at a folder that only contains archives.
+        let gamePath = folder.gamePath
+        let entryKind = folder.entryKind
+        if (!gamePath) {
+          const [archives, hasExecutable] = await Promise.all([
+            checkForArchives(folder.dirPath),
+            checkForExecutables(folder.dirPath)
+          ])
+          if (archives.length > 0 && !hasExecutable) {
+            gamePath = archives[0]
+            entryKind = 'archive'
+          }
+        }
+
+        if (entryKind === 'archive') {
+          const archiveEnabled = await ConfigDBManager.getConfigValue('game.archive.enabled')
+          if (!archiveEnabled) return
+        }
+
         let searchName = folder.name
-        const rootPath = inferRootPath(folder.dirPath)
-        if (rootPath && rootPath !== folder.dirPath) {
-          searchName = path.basename(rootPath)
+        if (entryKind === 'archive' && gamePath) {
+          const info = classifyArchive(path.basename(gamePath))
+          searchName = info ? info.base : path.basename(gamePath)
+        } else {
+          const rootPath = inferRootPath(folder.dirPath)
+          if (rootPath && rootPath !== folder.dirPath) {
+            searchName = path.basename(rootPath)
+          }
         }
         if (normalizeFolderName) {
           searchName = this.normalizeFolderName(searchName)
         }
 
-        // Use folder name as game name for search
-        const gameResults = await scraperManager.searchGames(dataSource, searchName, folder.dirPath)
+        // Use folder/archive name as the search name, and pass the archive path so
+        // providers such as DLsite can extract an RJ/VJ id from it.
+        const gameResults = await scraperManager.searchGames(
+          dataSource,
+          searchName,
+          gamePath ?? folder.dirPath
+        )
 
         if (gameResults && gameResults.length > 0) {
           // Use the first result as a match
@@ -493,10 +528,52 @@ export class GameScanner extends EventEmitter {
 
           const upscaleScale = scannerList[scannerId]?.upscaleScale ?? 0
 
+          // Best-effort header-only listing: fills entrypoint / encryption flags.
+          // Never blocks adding a game when 7-Zip is unavailable.
+          let archiveInfo:
+            | {
+                format: string
+                parts: string[]
+                entrypoint: string
+                encrypted: boolean
+                archiveBytes: number
+              }
+            | undefined
+          let version: string | undefined
+          if (entryKind === 'archive' && gamePath) {
+            const baseName = path.basename(gamePath)
+            const info = classifyArchive(baseName)
+            version = guessVersion(baseName).version ?? undefined
+            let entrypoint = ''
+            let encrypted = false
+            try {
+              const listing = await listArchive(gamePath, undefined, searchName)
+              if (listing.status === 'ok') {
+                entrypoint = listing.entrypoint ?? ''
+                encrypted = listing.summary?.hasEncryptedData ?? false
+              } else if (listing.status === 'encrypted') {
+                encrypted = true
+              }
+            } catch (error) {
+              log.warn('[Scanner] Failed to list archive ' + gamePath + ': ' + String(error))
+            }
+            archiveInfo = {
+              format: info?.format ?? 'other',
+              parts: [gamePath],
+              entrypoint,
+              encrypted,
+              archiveBytes: 0
+            }
+          }
+
           const dbId = await addGameToDB({
             dataSource,
             dataSourceId: match.id,
             dirPath: folder.dirPath,
+            gamePath,
+            sourceType: entryKind === 'archive' ? 'archive' : 'folder',
+            archive: archiveInfo,
+            version,
             upscaleEnabled: upscaleScale > 0,
             upscaleOptionsOverride: upscaleScale > 0 ? { scale: upscaleScale } : undefined,
             targetCollection,
@@ -518,7 +595,9 @@ export class GameScanner extends EventEmitter {
         path: folder.dirPath,
         name: folder.name,
         error: error instanceof Error ? error.message : String(error),
-        dataSource
+        dataSource,
+        gamePath: folder.gamePath,
+        entryKind: folder.entryKind
       })
       ipcManager.send('scanner:scan-folder-error', { ...this.scanProgress })
     }

@@ -11,6 +11,8 @@ export interface ScannerProgress {
     name: string
     error: string
     dataSource: string
+    gamePath?: string
+    entryKind?: 'folder' | 'archive'
   }[]
   scannedGames: number
   errorMessage?: string

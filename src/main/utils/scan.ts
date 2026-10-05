@@ -1,19 +1,29 @@
 import log from 'electron-log/main'
 import * as fse from 'fs-extra'
 import * as path from 'path'
+import { isArchiveName } from '~/features/archive/services/archiveDetect'
 
 // Define executable file extensions
 const EXECUTABLE_EXTENSIONS = ['.exe', '.app', '.bat', '.cmd', '.sh', '.lnk', '.url']
 
+export type GameEntryKind = 'folder' | 'archive'
+
+/**
+ * A candidate game entity.
+ * For archives, dirPath stays the containing directory (so utils.markPath /
+ * utils.rootPath remain directories) while gamePath points at the archive file.
+ */
+export interface GameFolderCandidate {
+  name: string
+  dirPath: string
+  gamePath?: string
+  entryKind: GameEntryKind
+}
+
 // Concurrency control parameters
 const MAX_CONCURRENCY = 10 // Maximum concurrency
 
-export async function getGameFolders(dirPath: string): Promise<
-  {
-    name: string
-    dirPath: string
-  }[]
-> {
+export async function getGameFolders(dirPath: string): Promise<GameFolderCandidate[]> {
   // Ensure directory exists
   if (!(await fse.pathExists(dirPath))) {
     throw new Error('Directory does not exist')
@@ -26,12 +36,7 @@ export async function getGameFolders(dirPath: string): Promise<
 export async function getGameEntityFoldersByHierarchyLevel(
   rootPath: string,
   hierarchyLevel: number
-): Promise<
-  {
-    name: string
-    dirPath: string
-  }[]
-> {
+): Promise<GameFolderCandidate[]> {
   const level = Number.isFinite(hierarchyLevel) ? Math.max(0, Math.floor(hierarchyLevel)) : 0
 
   if (!(await fse.pathExists(rootPath))) {
@@ -83,15 +88,10 @@ export async function getGameEntityFoldersByHierarchyLevel(
 
   return currentDirs
     .sort((a, b) => a.localeCompare(b))
-    .map((dirPath) => ({ name: path.basename(dirPath), dirPath }))
+    .map((dirPath) => ({ name: path.basename(dirPath), dirPath, entryKind: 'folder' as const }))
 }
 
-async function scanForGameFolders(rootPath: string): Promise<
-  {
-    name: string
-    dirPath: string
-  }[]
-> {
+async function scanForGameFolders(rootPath: string): Promise<GameFolderCandidate[]> {
   // Read directory contents
   let items: fse.Dirent[] = []
   try {
@@ -101,8 +101,8 @@ async function scanForGameFolders(rootPath: string): Promise<
     return []
   }
 
-  // Game folders result array
-  const gameFolders: { name: string; dirPath: string }[] = []
+  // Game entities result array
+  const gameFolders: GameFolderCandidate[] = []
 
   // Folders to scan further
   const foldersToScan: { name: string; dirPath: string }[] = []
@@ -110,8 +110,23 @@ async function scanForGameFolders(rootPath: string): Promise<
   const results = await processBatch(
     items,
     async (item) => {
-      if (!item.isDirectory() && !item.isSymbolicLink()) return null
       const fullPath = path.join(rootPath, item.name)
+
+      // A bare archive file directly under the scan root is a game entity of its own.
+      if (item.isFile()) {
+        if (!isArchiveName(item.name)) return null
+        return {
+          type: 'game',
+          folder: {
+            name: item.name,
+            dirPath: rootPath,
+            gamePath: fullPath,
+            entryKind: 'archive' as const
+          }
+        }
+      }
+
+      if (!item.isDirectory() && !item.isSymbolicLink()) return null
 
       try {
         let isDir = true
@@ -130,17 +145,32 @@ async function scanForGameFolders(rootPath: string): Promise<
               type: 'game',
               folder: {
                 name: item.name,
-                dirPath: fullPath
+                dirPath: fullPath,
+                entryKind: 'folder' as const
               }
             }
-          } else {
-            // If doesn't contain executable file, add to scan list
+          }
+
+          // A folder holding archive(s) but no executable is an archive-backed game.
+          const archives = await checkForArchives(fullPath)
+          if (archives.length > 0) {
             return {
-              type: 'scan',
+              type: 'game',
               folder: {
                 name: item.name,
-                dirPath: fullPath
+                dirPath: fullPath,
+                gamePath: archives[0],
+                entryKind: 'archive' as const
               }
+            }
+          }
+
+          // If doesn't contain executable file, add to scan list
+          return {
+            type: 'scan',
+            folder: {
+              name: item.name,
+              dirPath: fullPath
             }
           }
         }
@@ -181,7 +211,7 @@ async function scanForGameFolders(rootPath: string): Promise<
   return gameFolders
 }
 
-async function checkForExecutables(dirPath: string): Promise<boolean> {
+export async function checkForExecutables(dirPath: string): Promise<boolean> {
   try {
     const items = await fse.readdir(dirPath, { withFileTypes: true })
     let loopCount = 0
@@ -211,6 +241,23 @@ async function checkForExecutables(dirPath: string): Promise<boolean> {
   } catch (error) {
     console.error(`Error checking executables (${dirPath}):`, error)
     return false
+  }
+}
+
+/** List archive files (sorted) inside a directory. Used for archive-backed games. */
+export async function checkForArchives(dirPath: string): Promise<string[]> {
+  try {
+    const items = await fse.readdir(dirPath, { withFileTypes: true })
+    const archives: string[] = []
+    for (const item of items) {
+      if (item.isFile() && isArchiveName(item.name)) {
+        archives.push(path.join(dirPath, item.name))
+      }
+    }
+    return archives.sort((a, b) => a.localeCompare(b))
+  } catch (error) {
+    console.error('Error checking archives (' + dirPath + '):', error)
+    return []
   }
 }
 

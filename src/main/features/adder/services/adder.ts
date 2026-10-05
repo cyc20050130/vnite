@@ -1,4 +1,9 @@
-import { BatchGameInfo, DEFAULT_GAME_LOCAL_VALUES, DEFAULT_GAME_VALUES } from '@appTypes/models'
+import {
+  BatchGameInfo,
+  DEFAULT_GAME_LOCAL_VALUES,
+  DEFAULT_GAME_VALUES,
+  STORAGE_SIZE_NOT_CALCULATED
+} from '@appTypes/models'
 import {
   GameDescriptionList,
   GameDevelopersList,
@@ -13,6 +18,7 @@ import {
 } from '@appTypes/utils'
 import { generateUUID } from '@appUtils'
 import log from 'electron-log/main'
+import fse from 'fs-extra'
 import path from 'path'
 import { ConfigDBManager, GameDBManager } from '~/core/database'
 import { eventBus } from '~/core/events'
@@ -27,6 +33,14 @@ import { scraperManager } from '~/features/scraper'
 import { cacheDescriptionImages } from '~/features/scraper/services/descriptionImageCache'
 import { getGameFolders, selectPathDialog, inferRootPath } from '~/utils'
 
+export interface AddGameArchiveInput {
+  format?: string
+  parts?: string[]
+  entrypoint?: string
+  encrypted?: boolean
+  archiveBytes?: number
+}
+
 export async function addGameToDB({
   dataSource,
   dataSourceId,
@@ -36,6 +50,9 @@ export async function addGameToDB({
   playTime,
   dirPath,
   gamePath,
+  sourceType,
+  archive,
+  version,
   targetCollection,
   scanRoot
 }: {
@@ -47,6 +64,9 @@ export async function addGameToDB({
   playTime?: number
   dirPath?: string
   gamePath?: string
+  sourceType?: 'folder' | 'archive'
+  archive?: AddGameArchiveInput
+  version?: string
   targetCollection?: string
   scanRoot?: string
 }): Promise<string> {
@@ -272,10 +292,38 @@ export async function addGameToDB({
     gameLocalDoc.utils.rootPath = inferRootPath(gameLocalDoc.utils.markPath, scanRoot)
     gameLocalDoc.path.gamePath = gamePath ?? ''
 
+    if (version) {
+      gameDoc.metadata.version = version
+    }
+
+    if (sourceType === 'archive') {
+      // Archive-backed game: keep it compressed, never auto-extract at add time.
+      gameLocalDoc.launcher.mode = 'archive'
+      gameLocalDoc.archive = {
+        ...gameLocalDoc.archive,
+        enabled: true,
+        format: archive?.format ?? '',
+        parts: archive?.parts ?? (gamePath ? [gamePath] : []),
+        state: 'archived',
+        entrypoint: archive?.entrypoint ?? '',
+        encrypted: archive?.encrypted ?? false,
+        archiveBytes: archive?.archiveBytes ?? 0
+      }
+    }
+
     // Calculate storage size if enabled
     const autoCalculateSize = await isAutoCalculateStorageSizeEnabled()
-    if (autoCalculateSize && gameLocalDoc.utils.rootPath) {
-      gameDoc.record.storageSize = await calculateStorageSizeForPath(gameLocalDoc.utils.rootPath)
+    if (autoCalculateSize) {
+      if (sourceType === 'archive' && gamePath) {
+        // The archive file is the real on-disk footprint while it stays compressed.
+        try {
+          gameDoc.record.storageSize = (await fse.stat(gamePath)).size
+        } catch {
+          gameDoc.record.storageSize = STORAGE_SIZE_NOT_CALCULATED
+        }
+      } else if (gameLocalDoc.utils.rootPath) {
+        gameDoc.record.storageSize = await calculateStorageSizeForPath(gameLocalDoc.utils.rootPath)
+      }
     }
 
     // Prepare image fetching tasks
@@ -418,8 +466,9 @@ export async function addGameToDB({
           log.warn(`[Adder] Failed to save game icon: ${err.message}`)
         })
       )
-    } else if (gamePath) {
-      // If no icon fetched, try to save icon from the game executable
+    } else if (gamePath && sourceType !== 'archive') {
+      // If no icon fetched, try to save icon from the game executable.
+      // For archives this only yields the archive file-type icon, so skip it.
       dbPromises.push(
         saveGameIconByFile(dbId, gamePath).catch((err) => {
           log.warn(`[Adder] Failed to save game icon from executable: ${err.message}`)
@@ -440,8 +489,9 @@ export async function addGameToDB({
 
     await cacheDescriptionImages(metadata.description, dbId)
 
-    // Set the launcher preset
-    if (gamePath) await launcherPreset('default', dbId)
+    // Set the launcher preset (folder games only: the default preset would just
+    // shell.openPath the archive for archive-backed games).
+    if (gamePath && sourceType !== 'archive') await launcherPreset('default', dbId)
 
     // Emit event to notify other parts of the application
     eventBus.emit(

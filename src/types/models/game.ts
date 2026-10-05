@@ -14,6 +14,7 @@ export interface gameDoc {
     name: string
     originalName: string
     sortName: string
+    version: string
     releaseDate: string
     description: string
     developers: string[]
@@ -114,6 +115,32 @@ export interface gameLocalDocs {
   [gameId: string]: gameLocalDoc
 }
 
+export type GameArchiveFormat = 'zip' | '7z' | 'rar' | 'tar' | 'gz' | 'xz' | 'zst' | 'bz2' | 'other'
+export type GameArchiveState =
+  | 'archived'
+  | 'extracting'
+  | 'extracted'
+  | 'compressing'
+  | 'error'
+  | 'passwordRequired'
+
+export interface gameArchiveLocal {
+  enabled: boolean
+  format: GameArchiveFormat | ''
+  parts: string[]
+  state: GameArchiveState
+  entrypoint: string
+  extractDir: string
+  keepArchive: boolean
+  passwordId: string
+  encrypted: boolean
+  headerEncrypted: boolean
+  lastError: string
+  lastTransitionAt: string
+  archiveBytes: number
+  extractedBytes: number
+}
+
 export interface gameLocalDoc {
   _id: string
   path: {
@@ -122,7 +149,7 @@ export interface gameLocalDoc {
     screenshotPath?: string
   }
   launcher: {
-    mode: 'file' | 'url' | 'script'
+    mode: 'file' | 'archive' | 'url' | 'script'
     fileConfig: {
       path: string
       args: string[]
@@ -143,6 +170,7 @@ export interface gameLocalDoc {
     }
     useMagpie: boolean
   }
+  archive: gameArchiveLocal
   utils: {
     markPath: string
     rootPath: string
@@ -178,6 +206,22 @@ export const DEFAULT_GAME_LOCAL_VALUES: Readonly<gameLocalDoc> = {
     },
     useMagpie: false
   },
+  archive: {
+    enabled: false,
+    format: '',
+    parts: [],
+    state: 'archived',
+    entrypoint: '',
+    extractDir: '',
+    keepArchive: false,
+    passwordId: '',
+    encrypted: false,
+    headerEncrypted: false,
+    lastError: '',
+    lastTransitionAt: '',
+    archiveBytes: 0,
+    extractedBytes: 0
+  },
   utils: {
     markPath: '',
     rootPath: ''
@@ -204,6 +248,7 @@ export const DEFAULT_GAME_VALUES: Readonly<gameDoc> = {
     name: '',
     originalName: '',
     sortName: '',
+    version: '',
     releaseDate: '',
     description: '',
     developers: [] as string[],
