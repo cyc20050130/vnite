@@ -1,4 +1,4 @@
-import { GameList, GameMetadata } from '@appTypes/utils'
+import { GameList, GameMetadata, GameVersionInfo } from '@appTypes/utils'
 import { net } from 'electron'
 import i18next from 'i18next'
 import { formatDate } from '~/utils'
@@ -389,6 +389,32 @@ export async function getGameHeaderByName(gameName: string): Promise<string> {
   } catch (error) {
     console.error(`Error fetching header for game ${gameName}:`, error)
     return ''
+  }
+}
+
+export async function getSteamVersion(appId: string): Promise<GameVersionInfo | null> {
+  try {
+    const url =
+      'https://api.steampowered.com/ISteamApps/UpToDateCheck/v1/?appid=' +
+      encodeURIComponent(appId) +
+      '&version=0'
+    const response = await fetchWithTimeout(url)
+    if (!response.ok) return null
+    const data = (await response.json()) as {
+      response?: { required_version?: number; requiredVersion?: number }
+    }
+    const required = data.response?.required_version ?? data.response?.requiredVersion
+    if (!required) return null
+    return {
+      buildId: String(required),
+      version: 'build ' + required,
+      source: 'steam',
+      confidence: 'exact',
+      url: 'https://store.steampowered.com/app/' + appId
+    }
+  } catch (error) {
+    console.error('Error fetching Steam version:', error)
+    return null
   }
 }
 

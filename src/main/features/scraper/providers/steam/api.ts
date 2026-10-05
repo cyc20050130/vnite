@@ -1,4 +1,4 @@
-import { GameList, GameMetadata, ScraperIdentifier } from '@appTypes/utils'
+import { GameList, GameMetadata, ScraperIdentifier, GameVersionInfo } from '@appTypes/utils'
 import {
   checkSteamGameExists,
   getGameBackgrounds,
@@ -11,7 +11,8 @@ import {
   getGameLogoByName,
   getSteamMetadata,
   getSteamMetadataByName,
-  searchSteamGames
+  searchSteamGames,
+  getSteamVersion
 } from './common'
 
 export async function searchGamesFromSteam(gameName: string): Promise<GameList> {
@@ -21,6 +22,20 @@ export async function searchGamesFromSteam(gameName: string): Promise<GameList> 
   } catch (error) {
     console.error('Error searching for games:', error)
     throw error
+  }
+}
+
+export async function getGameVersionFromSteam(
+  identifier: ScraperIdentifier
+): Promise<GameVersionInfo | null> {
+  try {
+    if (identifier.type === 'id') return await getSteamVersion(identifier.value)
+    const games = await searchSteamGames(identifier.value)
+    if (games.length === 0) return null
+    return await getSteamVersion(games[0].id)
+  } catch (error) {
+    console.error('Error fetching Steam version:', error)
+    return null
   }
 }
 

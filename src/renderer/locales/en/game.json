@@ -1,4 +1,22 @@
 {
+  "version": {
+    "title": "Version",
+    "check": "Check update",
+    "local": "Local",
+    "latest": "Latest",
+    "source": "Source",
+    "checkedAt": "Checked at",
+    "unknown": "Unknown",
+    "noSource": "No data source available for this game",
+    "noResult": "The provider did not return version info",
+    "checked": "Version info updated",
+    "status": {
+      "latest": "Up to date",
+      "outdated": "Update available",
+      "partial": "Needs review",
+      "unknown": "Unknown"
+    }
+  },
   "characters": {
     "title": "Characters",
     "voice": "Voice",

@@ -1,4 +1,22 @@
 {
+  "version": {
+    "title": "版本",
+    "check": "检查更新",
+    "local": "本地版本",
+    "latest": "线上版本",
+    "source": "来源",
+    "checkedAt": "检查时间",
+    "unknown": "未知",
+    "noSource": "该游戏没有可用的数据源，无法检查版本",
+    "noResult": "数据源未提供版本信息",
+    "checked": "版本信息已更新",
+    "status": {
+      "latest": "最新",
+      "outdated": "有更新",
+      "partial": "需人工确认",
+      "unknown": "未知"
+    }
+  },
   "characters": {
     "title": "角色",
     "voice": "声优",

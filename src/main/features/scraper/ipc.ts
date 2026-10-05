@@ -19,6 +19,13 @@ export function setupScraperIPC(): void {
   )
 
   ipcManager.handle(
+    'scraper:get-game-version',
+    async (_, dataSource: string, identifier: ScraperIdentifier) => {
+      return await scraperManager.getGameVersion(dataSource, identifier)
+    }
+  )
+
+  ipcManager.handle(
     'scraper:check-game-exists',
     async (_, dataSource: string, identifier: ScraperIdentifier) => {
       return await scraperManager.checkGameExists(dataSource, identifier)

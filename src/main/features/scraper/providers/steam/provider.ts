@@ -1,5 +1,5 @@
 import { ScraperProvider } from '../../services/types'
-import { GameList, GameMetadata, ScraperIdentifier } from '@appTypes/utils'
+import { GameList, GameMetadata, ScraperIdentifier, GameVersionInfo } from '@appTypes/utils'
 import {
   searchGamesFromSteam,
   getGameMetadataFromSteam,
@@ -7,7 +7,8 @@ import {
   getGameBackgroundsFromSteam,
   getGameWideCoversFromSteam,
   getGameCoversFromSteam,
-  getGameLogosFromSteam
+  getGameLogosFromSteam,
+  getGameVersionFromSteam
 } from './api'
 
 export const steamProvider: ScraperProvider = {
@@ -49,5 +50,9 @@ export const steamProvider: ScraperProvider = {
 
   async getGameLogos(identifier: ScraperIdentifier): Promise<string[]> {
     return await getGameLogosFromSteam(identifier)
+  },
+
+  async getGameVersion(identifier: ScraperIdentifier): Promise<GameVersionInfo | null> {
+    return await getGameVersionFromSteam(identifier)
   }
 }

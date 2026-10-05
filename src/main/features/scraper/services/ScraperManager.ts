@@ -16,7 +16,8 @@ import {
   AggregatedSearchResult,
   AggregatedGameListItem,
   AggregatedSearchError,
-  GameCharacter
+  GameCharacter,
+  GameVersionInfo
 } from '@appTypes/utils'
 import { withTimeout } from '~/utils'
 import { Transformer } from '~/features/transformer'
@@ -153,6 +154,20 @@ export class ScraperManager {
     } catch (error) {
       log.error(`[Scraper] Failed to get game wide covers using provider '${providerId}': ${error}`)
       return []
+    }
+  }
+
+  public async getGameVersion(
+    providerId: string,
+    identifier: ScraperIdentifier
+  ): Promise<GameVersionInfo | null> {
+    try {
+      const provider = this.getProvider(providerId)
+      if (!provider || !provider.getGameVersion) return null
+      return await provider.getGameVersion(identifier)
+    } catch (error) {
+      log.error('[Scraper] Failed to get game version from ' + providerId + ': ' + error)
+      return null
     }
   }
 

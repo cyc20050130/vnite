@@ -45,7 +45,8 @@ import {
   ScraperIdentifier,
   SteamFormattedGameInfo,
   AggregatedSearchOptions,
-  AggregatedSearchResult
+  AggregatedSearchResult,
+  GameVersionInfo
 } from './utils'
 
 /**
@@ -285,6 +286,10 @@ type MainIpcEvents =
       'archive:remove-password': (id: string) => void
       'archive:retry-password': (gameId: string) => string
       'scraper:check-game-exists': (dataSource: string, identifier: ScraperIdentifier) => boolean
+      'scraper:get-game-version': (
+        dataSource: string,
+        identifier: ScraperIdentifier
+      ) => GameVersionInfo | null
       'scraper:get-game-metadata': (
         dataSource: string,
         identifier: ScraperIdentifier

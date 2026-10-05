@@ -6,6 +6,7 @@ import { Characters } from './Characters'
 import { RecommendedGamesCard } from './RecommendedGames'
 import { RelatedSites } from './RelatedSites'
 import { Tags } from './Tags'
+import { Version } from './Version'
 
 export function Overview({ gameId }: { gameId: string }): React.JSX.Element {
   return (
@@ -25,6 +26,7 @@ export function Overview({ gameId }: { gameId: string }): React.JSX.Element {
       {/* Right/Bottom area - 1 column on large screens, full width on small screens */}
       <div className={cn('flex flex-col gap-5', 'col-span-1')}>
         <Information gameId={gameId} />
+        <Version gameId={gameId} />
         <ExtraInformation gameId={gameId} />
         <RecommendedGamesCard gameId={gameId} />
         <RelatedSites gameId={gameId} />

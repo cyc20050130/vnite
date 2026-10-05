@@ -51,6 +51,16 @@ export type GameCharacter = {
   spoiler?: number
 }
 
+export type GameVersionInfo = {
+  version?: string
+  buildId?: string
+  updatedAt?: string
+  source: string
+  confidence: 'exact' | 'inferred' | 'unknown'
+  url?: string
+  changelog?: string
+}
+
 export type GameMetadata = {
   name: string
   originalName: string | null
@@ -139,6 +149,7 @@ export type GameInformationList = {
 export type ScraperCapabilities =
   | 'searchGames'
   | 'getGameCharacters'
+  | 'getGameVersion'
   | 'checkGameExists'
   | 'getGameMetadata'
   | 'getGameWideCovers'

@@ -46,6 +46,9 @@ export interface gameDoc {
       label: string
       url: string
     }[]
+    /** Provider this game was added from (used for version checks). */
+    dataSource: string
+    dataSourceId: string
     steamId: string
     vndbId: string
     igdbId: string
@@ -71,6 +74,17 @@ export interface gameDoc {
       playTime: number
     }[]
     storageSize: number
+    /** Cached "latest version" result from the online provider. */
+    latestVersionInfo: {
+      version?: string
+      buildId?: string
+      updatedAt?: string
+      source: string
+      confidence: 'exact' | 'inferred' | 'unknown'
+      url?: string
+      changelog?: string
+      checkedAt: string
+    } | null
   }
   save: {
     saveList: {
@@ -307,6 +321,8 @@ export const DEFAULT_GAME_VALUES: Readonly<gameDoc> = {
       actors?: string[]
     }[],
     relatedSites: [] as { label: string; url: string }[],
+    dataSource: '',
+    dataSourceId: '',
     steamId: '',
     vndbId: '',
     igdbId: '',
@@ -322,7 +338,8 @@ export const DEFAULT_GAME_VALUES: Readonly<gameDoc> = {
     hideFromRecentGames: false,
     timers: [],
     dailyPlayTimes: [],
-    storageSize: STORAGE_SIZE_NOT_CALCULATED
+    storageSize: STORAGE_SIZE_NOT_CALCULATED,
+    latestVersionInfo: null
   },
   save: {
     saveList: {},

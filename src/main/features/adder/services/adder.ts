@@ -280,6 +280,8 @@ export async function addGameToDB({
       ...gameDoc.metadata,
       ...metadata,
       originalName: metadata.originalName ?? '',
+      dataSource,
+      dataSourceId,
       [`${dataSource}Id`]: dataSourceId
     }
 
