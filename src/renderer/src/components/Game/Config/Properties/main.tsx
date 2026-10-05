@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { useGameState } from '~/hooks'
 import { cn } from '~/utils'
 import { PropertiesDialogTab } from '../../store'
+import { Archive } from './Archive'
 import { Launcher, LauncherHandle } from './Launcher'
 import { Media } from './Media'
 import { Path, PathHandle } from './Path'
@@ -65,6 +66,7 @@ export function GamePropertiesDialog({
             <TabsTrigger value="launcher">{t('detail.properties.tabs.launcher')}</TabsTrigger>
             <TabsTrigger value="path">{t('detail.properties.tabs.path')}</TabsTrigger>
             <TabsTrigger value="media">{t('detail.properties.tabs.media')}</TabsTrigger>
+            <TabsTrigger value="archive">{t('archivePanel.tab')}</TabsTrigger>
           </TabsList>
 
           {/* -ml-1 and pl-1 to show the left shadow */}
@@ -79,6 +81,10 @@ export function GamePropertiesDialog({
 
             <TabsContent value="media" className="pr-5 pb-3 pl-1">
               <Media gameId={gameId} />
+            </TabsContent>
+
+            <TabsContent value="archive" className="pr-5 pb-3 pl-1">
+              <Archive gameId={gameId} />
             </TabsContent>
           </ScrollArea>
         </Tabs>

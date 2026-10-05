@@ -141,6 +141,22 @@ export interface gameArchiveLocal {
   extractedBytes: number
 }
 
+export interface ArchiveStatusView {
+  gameId: string
+  enabled: boolean
+  state: string
+  format: string
+  archivePath: string
+  parts: string[]
+  extractDir: string
+  entrypoint: string
+  encrypted: boolean
+  archiveBytes: number
+  extractedBytes: number
+  lastError: string
+  extractDirExists: boolean
+}
+
 export interface gameLocalDoc {
   _id: string
   path: {

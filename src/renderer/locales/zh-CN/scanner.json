@@ -82,7 +82,15 @@
     "scanIntervalTooltip": "所有扫描器的扫描间隔时间，单位为分钟",
     "ignoreList": "排除列表",
     "ignoreListPlaceholder": "输入排除的文件夹名，支持正则表达式",
-    "ignoreListTooltip": "支持正则表达式，每行一个"
+    "ignoreListTooltip": "支持正则表达式，每行一个",
+    "scanArchives": "扫描压缩包",
+    "scanArchivesTooltip": "把压缩包（zip/7z/rar，含分卷）识别为游戏，不解压即可入库与刮削",
+    "aggregateSearch": "聚合搜索",
+    "aggregateSearchTooltip": "一次搜索同时查询多个数据源并合并结果，优先级 bangumi > vndb > dlsite > ymgal > steam > igdb",
+    "extractRoot": "统一解压根目录",
+    "extractRootPlaceholder": "留空则解压到压缩包同级目录",
+    "autoCompress": "完结自动回压",
+    "autoCompressTooltip": "游戏被标记为\"已游玩\"后，自动重新压缩并删除解压目录"
   },
   "dataSources": {
     "steam": "Steam",

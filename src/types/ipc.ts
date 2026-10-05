@@ -8,7 +8,12 @@ import {
 import { ReportExportRequest, ReportExportResponse } from '@appTypes/report'
 import { BatchUpdateGameMetadataProgress, OverallScanProgress } from '@appTypes/utils'
 import { ProgressInfo, UpdateCheckResult } from 'electron-updater'
-import type { GameMediaType, LauncherPresetApplyResult } from './models'
+import type {
+  ArchivePasswordEntry,
+  ArchiveStatusView,
+  GameMediaType,
+  LauncherPresetApplyResult
+} from './models'
 import { BatchGameInfo, configDocs, configLocalDocs, gameDoc, GameTimerStatus } from './models'
 import { GameDatabaseStorageDetail, LocalDatabaseStorageReport } from './models/databaseInspector'
 import {
@@ -38,7 +43,9 @@ import {
   GameTagsList,
   ScraperCapabilities,
   ScraperIdentifier,
-  SteamFormattedGameInfo
+  SteamFormattedGameInfo,
+  AggregatedSearchOptions,
+  AggregatedSearchResult
 } from './utils'
 
 /**
@@ -264,7 +271,19 @@ type MainIpcEvents =
       'toolbox:refresh-tool-icon': (toolId: string, exePath: string) => void
       'toolbox:remove-tool': (toolId: string) => void
 
-      'scraper:search-games': (dataSource: string, gameName: string) => GameList
+      'scraper:search-games': (dataSource: string, gameName: string, gamePath?: string) => GameList
+      'scraper:aggregate-search-games': (
+        gameName: string,
+        options?: AggregatedSearchOptions
+      ) => AggregatedSearchResult
+
+      'archive:get-status': (gameId: string) => ArchiveStatusView | null
+      'archive:extract': (gameId: string) => string
+      'archive:compress': (gameId: string) => string
+      'archive:get-passwords': () => ArchivePasswordEntry[]
+      'archive:add-passwords': (values: string[], label?: string) => number
+      'archive:remove-password': (id: string) => void
+      'archive:retry-password': (gameId: string) => string
       'scraper:check-game-exists': (dataSource: string, identifier: ScraperIdentifier) => boolean
       'scraper:get-game-metadata': (
         dataSource: string,
@@ -427,6 +446,20 @@ type RendererIpcEvents = {
   'game:exited': [gameId: string]
   'game:start-from-url': [gameId: string]
   'game:launch-failed': [gameId: string]
+
+  'archive:job-progress': [
+    { gameId: string; jobType: 'extract' | 'compress'; percent: number }
+  ]
+  'archive:state-changed': [{ gameId: string; from: string; to: string; error?: string }]
+  'archive:password-required': [
+    {
+      gameId: string
+      archivePath: string
+      parts: string[]
+      tried: number
+      headerEncrypted: boolean
+    }
+  ]
 
   'importer:import-steam-games-progress': [
     {

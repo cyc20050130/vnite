@@ -8,8 +8,9 @@ import {
   DialogFooter
 } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
+import { Switch } from '~/components/ui/switch'
 import { Button } from '~/components/ui/button'
-import { useConfigLocalState } from '~/hooks'
+import { useConfigLocalState, useConfigState } from '~/hooks'
 import { ArrayTextarea } from '@ui/array-textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip'
 import { cn } from '~/utils'
@@ -25,6 +26,12 @@ interface GlobalSettingsDialogProps {
 export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation('scanner')
   const [scannerConfig, setScannerConfig] = useConfigLocalState('game.scanner')
+  const [scanArchives, setScanArchives] = useConfigState('game.archive.enabled')
+  const [aggregateSearch, setAggregateSearch] = useConfigState(
+    'game.scraper.common.aggregateSearch'
+  )
+  const [extractRoot, setExtractRoot] = useConfigState('game.archive.defaultExtractRoot')
+  const [autoCompress, setAutoCompress] = useConfigState('game.archive.autoCompressOnFinished')
   const { globalSettings, intervalMinutes, updateGlobalSettings, updateIntervalMinutes } =
     useGameScannerStore()
 
@@ -103,6 +110,72 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
             </TooltipTrigger>
             <TooltipContent side="bottom" align="start">
               <div className={cn('text-xs')}>{t('globalSettings.ignoreListTooltip')}</div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Scan archives */}
+          <div className={cn('whitespace-nowrap select-none justify-self-start')}>
+            {t('globalSettings.scanArchives')}
+          </div>
+          <Tooltip>
+            <TooltipTrigger className={cn('p-0 max-w-none m-0 w-full')}>
+              <div>
+                <Switch
+                  checked={Boolean(scanArchives)}
+                  onCheckedChange={(value) => void setScanArchives(value)}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start">
+              <div className={cn('text-xs')}>{t('globalSettings.scanArchivesTooltip')}</div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Aggregate search */}
+          <div className={cn('whitespace-nowrap select-none justify-self-start')}>
+            {t('globalSettings.aggregateSearch')}
+          </div>
+          <Tooltip>
+            <TooltipTrigger className={cn('p-0 max-w-none m-0 w-full')}>
+              <div>
+                <Switch
+                  checked={Boolean(aggregateSearch)}
+                  onCheckedChange={(value) => void setAggregateSearch(value)}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start">
+              <div className={cn('text-xs')}>{t('globalSettings.aggregateSearchTooltip')}</div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Unified extract root */}
+          <div className={cn('whitespace-nowrap select-none justify-self-start')}>
+            {t('globalSettings.extractRoot')}
+          </div>
+          <Input
+            type="text"
+            value={extractRoot ?? ''}
+            placeholder={t('globalSettings.extractRootPlaceholder')}
+            onChange={(event) => void setExtractRoot(event.target.value)}
+            className={cn('text-sm')}
+          />
+
+          {/* Auto compress on finished */}
+          <div className={cn('whitespace-nowrap select-none justify-self-start')}>
+            {t('globalSettings.autoCompress')}
+          </div>
+          <Tooltip>
+            <TooltipTrigger className={cn('p-0 max-w-none m-0 w-full')}>
+              <div>
+                <Switch
+                  checked={Boolean(autoCompress)}
+                  onCheckedChange={(value) => void setAutoCompress(value)}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start">
+              <div className={cn('text-xs')}>{t('globalSettings.autoCompressTooltip')}</div>
             </TooltipContent>
           </Tooltip>
         </div>

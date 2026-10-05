@@ -82,7 +82,15 @@
     "scanIntervalTooltip": "Scan interval time for all scanners, in minutes",
     "ignoreList": "Ignore List",
     "ignoreListPlaceholder": "Enter folder names to exclude, supports regex",
-    "ignoreListTooltip": "Supports regular expressions, each line is a separate expression"
+    "ignoreListTooltip": "Supports regular expressions, each line is a separate expression",
+    "scanArchives": "Scan archives",
+    "scanArchivesTooltip": "Treat archives (zip/7z/rar incl. multi-volume) as games: index and scrape without extracting",
+    "aggregateSearch": "Aggregate search",
+    "aggregateSearchTooltip": "Query several sources at once and merge results; priority bangumi > vndb > dlsite > ymgal > steam > igdb",
+    "extractRoot": "Unified extract root",
+    "extractRootPlaceholder": "Leave empty to extract next to the archive",
+    "autoCompress": "Auto re-compress when finished",
+    "autoCompressTooltip": "When a game is marked as finished, re-compress it and delete the extracted folder"
   },
   "dataSources": {
     "steam": "Steam",

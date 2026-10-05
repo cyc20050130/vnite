@@ -2,6 +2,7 @@ import path from 'path'
 import fse from 'fs-extra'
 import log from 'electron-log/main'
 import { ConfigDBManager, GameDBManager } from '~/core/database'
+import type { ArchiveStatusView } from '@appTypes/models'
 import { eventBus } from '~/core/events'
 import { ipcManager } from '~/core/ipc'
 import {
@@ -19,21 +20,7 @@ import { resolvePasswordForArchive } from './passwordVault'
 const TMP_SUFFIX = '.vnite-tmp'
 const LONG_TIMEOUT = 6 * 60 * 60 * 1000
 
-export interface ArchiveStatus {
-  gameId: string
-  enabled: boolean
-  state: string
-  format: string
-  archivePath: string
-  parts: string[]
-  extractDir: string
-  entrypoint: string
-  encrypted: boolean
-  archiveBytes: number
-  extractedBytes: number
-  lastError: string
-  extractDirExists: boolean
-}
+export type ArchiveStatus = ArchiveStatusView
 
 function sanitizeFolderName(name: string): string {
   const cleaned = name
