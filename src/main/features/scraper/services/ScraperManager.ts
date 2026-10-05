@@ -11,11 +11,24 @@ import {
   GameGenresList,
   GamePlatformsList,
   GameRelatedSitesList,
-  GameInformationList
+  GameInformationList,
+  AggregatedSearchOptions,
+  AggregatedSearchResult,
+  AggregatedGameListItem,
+  AggregatedSearchError
 } from '@appTypes/utils'
 import { withTimeout } from '~/utils'
 import { Transformer } from '~/features/transformer'
 import log from 'electron-log/main'
+
+function normalizeSearchText(input: string): string {
+  return (input || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\[\]【】()（）「」『』:：\-_/\\.,，。!！?？~～☆★]/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
 
 export class ScraperManager {
   private providers: Map<string, ScraperProvider> = new Map()
@@ -646,6 +659,123 @@ export class ScraperManager {
       log.error(`[Scraper] Failed to get game information list: ${error}`)
       throw error
     }
+  }
+
+  /**
+   * Query several providers at once and merge/dedupe/rank their results.
+   * Provider order in options.providers doubles as the tie-break priority.
+   */
+  public async aggregateSearchGames(
+    gameName: string,
+    options: AggregatedSearchOptions = {}
+  ): Promise<AggregatedSearchResult> {
+    const errors: AggregatedSearchError[] = []
+    if (!gameName || gameName.trim().length === 0) {
+      return { query: gameName, items: [], errors }
+    }
+
+    const fallbackOrder = ['bangumi', 'vndb', 'dlsite', 'ymgal', 'steam', 'igdb', 'erogamescape']
+    const requested =
+      options.providers && options.providers.length > 0 ? options.providers : fallbackOrder
+    const callable = requested.filter((id) => {
+      if (!this.hasProvider(id)) return false
+      return Boolean(this.getProvider(id)!.searchGames)
+    })
+
+    const timeoutMs = options.perSourceTimeoutMs ?? 8000
+    const concurrency = Math.max(1, options.concurrency ?? 4)
+    const limit = options.limitPerSource ?? 0
+    const collected: AggregatedGameListItem[] = []
+
+    for (let i = 0; i < callable.length; i += concurrency) {
+      const batch = callable.slice(i, i + concurrency)
+      const settled = await Promise.allSettled(
+        batch.map(async (providerId) => {
+          const provider = this.getProvider(providerId)!
+          const list = await withTimeout(
+            provider.searchGames!(gameName, options.gamePath),
+            timeoutMs,
+            providerId
+          )
+          return {
+            providerId,
+            providerName: provider.name,
+            list: limit > 0 ? list.slice(0, limit) : list
+          }
+        })
+      )
+
+      settled.forEach((result, index) => {
+        const providerId = batch[index]
+        if (result.status === 'fulfilled') {
+          for (const item of result.value.list) {
+            collected.push({
+              ...item,
+              source: providerId,
+              sourceName: result.value.providerName,
+              score: this.rankSearchCandidate(item, gameName)
+            })
+          }
+        } else {
+          const reason =
+            result.reason instanceof Error ? result.reason.message : String(result.reason)
+          errors.push({ source: providerId, message: reason })
+          log.warn('[Scraper] aggregate search failed for ' + providerId + ': ' + reason)
+        }
+      })
+    }
+
+    const deduped = this.dedupeSearchCandidates(collected, options.dedupe ?? 'per-source')
+    const orderIndex = new Map(callable.map((id, index) => [id, index] as const))
+    deduped.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      const ai = orderIndex.get(a.source) ?? 999
+      const bi = orderIndex.get(b.source) ?? 999
+      if (ai !== bi) return ai - bi
+      return a.name.localeCompare(b.name)
+    })
+
+    return { query: gameName, items: deduped, errors }
+  }
+
+  private rankSearchCandidate(item: GameList[number], query: string): number {
+    const a = normalizeSearchText(item.name)
+    const b = normalizeSearchText(query)
+    let score = 0
+    if (a.length > 0 && a === b) {
+      score += 100
+    } else if (a.length > 0 && b.length > 0 && (a.includes(b) || b.includes(a))) {
+      score += 50
+    } else {
+      const tokensA = new Set(a.split(' ').filter(Boolean))
+      const tokensB = b.split(' ').filter(Boolean)
+      if (tokensB.length > 0) {
+        const hit = tokensB.filter((t) => tokensA.has(t)).length
+        score += Math.round((hit / tokensB.length) * 40)
+      }
+    }
+    if (item.releaseDate) score += 10
+    if (item.developers && item.developers.length > 0) score += 5
+    return score
+  }
+
+  private dedupeSearchCandidates(
+    items: AggregatedGameListItem[],
+    mode: 'none' | 'per-source' | 'cross-source'
+  ): AggregatedGameListItem[] {
+    if (mode === 'none') return items
+    const seen = new Set<string>()
+    const result: AggregatedGameListItem[] = []
+    for (const item of items) {
+      const key =
+        mode === 'per-source'
+          ? item.source + '::' + item.id
+          : normalizeSearchText(item.name) + '::' + (item.releaseDate || '').slice(0, 4)
+      if (seen.has(key)) continue
+      seen.add(key)
+      result.push(item)
+    }
+    return result
   }
 }
 

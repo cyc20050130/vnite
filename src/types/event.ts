@@ -80,6 +80,14 @@ export interface AppEvents {
     percent: number
   }
 
+  'archive:password-required': {
+    gameId: string
+    archivePath: string
+    parts: string[]
+    tried: number
+    headerEncrypted: boolean
+  }
+
   'theme:preset-changed': {
     preset: string
   }

@@ -5,6 +5,32 @@ export type GameList = {
   developers: string[]
 }[]
 
+export type AggregatedSearchOptions = {
+  providers?: string[]
+  gamePath?: string
+  perSourceTimeoutMs?: number
+  concurrency?: number
+  dedupe?: 'none' | 'per-source' | 'cross-source'
+  limitPerSource?: number
+}
+
+export type AggregatedGameListItem = GameList[number] & {
+  source: string
+  sourceName: string
+  score: number
+}
+
+export type AggregatedSearchError = {
+  source: string
+  message: string
+}
+
+export type AggregatedSearchResult = {
+  query: string
+  items: AggregatedGameListItem[]
+  errors: AggregatedSearchError[]
+}
+
 export type GameMetadata = {
   name: string
   originalName: string | null

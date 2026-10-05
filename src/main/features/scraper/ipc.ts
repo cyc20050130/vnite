@@ -1,12 +1,22 @@
 import { scraperManager } from './services'
-import { ScraperIdentifier } from '@appTypes/utils'
+import { ScraperIdentifier, AggregatedSearchOptions } from '@appTypes/utils'
 import { ipcManager } from '~/core/ipc'
 import { ScraperCapabilities } from './services/types'
 
 export function setupScraperIPC(): void {
-  ipcManager.handle('scraper:search-games', async (_, dataSource: string, gameName: string) => {
-    return await scraperManager.searchGames(dataSource, gameName)
-  })
+  ipcManager.handle(
+    'scraper:search-games',
+    async (_, dataSource: string, gameName: string, gamePath?: string) => {
+      return await scraperManager.searchGames(dataSource, gameName, gamePath)
+    }
+  )
+
+  ipcManager.handle(
+    'scraper:aggregate-search-games',
+    async (_, gameName: string, options?: AggregatedSearchOptions) => {
+      return await scraperManager.aggregateSearchGames(gameName, options)
+    }
+  )
 
   ipcManager.handle(
     'scraper:check-game-exists',

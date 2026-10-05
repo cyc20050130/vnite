@@ -58,6 +58,10 @@ export interface configDocs {
         defaultDataSource: 'steam' | 'vndb' | 'bangumi' | 'ymgal' | 'igdb' | 'dlsite' | string
         defaultMediaDataSource: 'google' | string
         cacheDescriptionImages: boolean
+        /** Aggregate search across several providers at once. */
+        aggregateSearch: boolean
+        /** Provider order used for aggregation (also acts as the tie-break priority). */
+        aggregateProviders: string[]
       }
       vndb: {
         tagSpoilerLevel: 0 | 1 | 2
@@ -278,6 +282,15 @@ export interface configDocs {
   }
 }
 
+export interface ArchivePasswordEntry {
+  id: string
+  value: string
+  label: string
+  createdAt: string
+  successCount: number
+  lastUsedAt?: string
+}
+
 export interface configLocalDocs {
   report: ReportExportOptions
   userInfo: {
@@ -312,6 +325,11 @@ export interface configLocalDocs {
   game: {
     launcher: {
       presets: LauncherPreset[]
+    }
+    archive: {
+      passwords: ArchivePasswordEntry[]
+      /** archive fingerprint -> password entry id */
+      bindings: Record<string, string>
     }
     linkage: {
       localeEmulator: {
@@ -408,7 +426,9 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
       common: {
         defaultDataSource: 'steam',
         defaultMediaDataSource: 'google',
-        cacheDescriptionImages: false
+        cacheDescriptionImages: false,
+        aggregateSearch: true,
+        aggregateProviders: ['bangumi', 'vndb', 'dlsite', 'ymgal', 'steam', 'igdb', 'erogamescape']
       },
       vndb: {
         tagSpoilerLevel: 0
@@ -620,6 +640,10 @@ export const DEFAULT_CONFIG_LOCAL_VALUES: Readonly<configLocalDocs> = {
   game: {
     launcher: {
       presets: [] as LauncherPreset[]
+    },
+    archive: {
+      passwords: [] as ArchivePasswordEntry[],
+      bindings: {} as Record<string, string>
     },
     linkage: {
       localeEmulator: {

@@ -5,6 +5,7 @@ export * from './services/sevenZip'
 export * from './services/archiveList'
 export * from './services/archiveState'
 export * from './services/rarEngine'
+export * from './services/passwordVault'
 export { setupArchiveIPC } from './ipc'
 
 import { setupArchiveIPC } from './ipc'

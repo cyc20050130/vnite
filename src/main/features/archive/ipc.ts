@@ -1,5 +1,6 @@
 import { ipcManager } from '~/core/ipc'
 import { listArchive } from './services/archiveList'
+import { addPasswords, getPasswords, removePassword } from './services/passwordVault'
 import {
   compressGame,
   ensureExtracted,
@@ -22,4 +23,19 @@ export function setupArchiveIPC(): void {
   )
 
   ipcManager.handle('archive:run-maintenance', async () => runArchiveMaintenance())
+
+  ipcManager.handle('archive:get-passwords', async () => getPasswords())
+
+  ipcManager.handle('archive:add-passwords', async (_event, values: string[], label?: string) =>
+    addPasswords(values, label)
+  )
+
+  ipcManager.handle('archive:remove-password', async (_event, id: string) =>
+    removePassword(id)
+  )
+
+  // Re-try extraction after the user supplied a password.
+  ipcManager.handle('archive:retry-password', async (_event, gameId: string) =>
+    ensureExtracted(gameId)
+  )
 }

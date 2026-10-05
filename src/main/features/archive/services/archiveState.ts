@@ -14,6 +14,7 @@ import {
 } from './sevenZip'
 import { classifyArchive, detectArchiveByMagic } from './archiveDetect'
 import { extractRarArchive, isRarPasswordError } from './rarEngine'
+import { resolvePasswordForArchive } from './passwordVault'
 
 const TMP_SUFFIX = '.vnite-tmp'
 const LONG_TIMEOUT = 6 * 60 * 60 * 1000
@@ -192,6 +193,28 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
   const extractDir = archive.extractDir || (await resolveExtractDir(archivePath, title))
   const tmpDir = extractDir + TMP_SUFFIX
 
+  // Encrypted archives: find a working password before touching the disk.
+  let password: string | null = null
+  if (archive.encrypted) {
+    const resolved = await resolvePasswordForArchive(archivePath)
+    if (resolved.encrypted && !resolved.password) {
+      await setState(gameId, 'passwordRequired', 'password required')
+      eventBus.emit(
+        'archive:password-required',
+        {
+          gameId,
+          archivePath,
+          parts,
+          tried: resolved.tried,
+          headerEncrypted: resolved.headerEncrypted
+        },
+        { source: 'archive' }
+      )
+      throw new Error('password required for ' + path.basename(archivePath))
+    }
+    password = resolved.password
+  }
+
   await fse.remove(tmpDir)
   await fse.ensureDir(path.dirname(extractDir))
   await setState(gameId, 'extracting')
@@ -200,6 +223,7 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
   try {
     if (useUnrar) {
       await extractRarArchive(archivePath, tmpDir, {
+        password: password ?? undefined,
         onProgress: (percent) => {
           if (percent >= 0) {
             ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent })
@@ -208,6 +232,7 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
       })
     } else {
       const result = await extractArchive(archivePath, tmpDir, {
+        password: password ?? undefined,
         timeoutMs: LONG_TIMEOUT,
         onProgress: (percent) =>
           ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent })
