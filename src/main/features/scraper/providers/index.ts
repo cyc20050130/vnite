@@ -7,6 +7,8 @@ import { dlsiteProvider } from './dlsite'
 import { bangumiProvider } from './bangumi'
 import { googleProvider } from './google'
 import { erogamescapeProvider } from './erogamescape'
+import { f95zoneProvider } from './f95zone'
+import { itchioProvider } from './itchio'
 
 export {
   vndbProvider,
@@ -17,7 +19,9 @@ export {
   dlsiteProvider,
   bangumiProvider,
   googleProvider,
-  erogamescapeProvider
+  erogamescapeProvider,
+  f95zoneProvider,
+  itchioProvider
 }
 
 export const builtinProviders = [
@@ -29,5 +33,7 @@ export const builtinProviders = [
   dlsiteProvider,
   bangumiProvider,
   googleProvider,
-  erogamescapeProvider
+  erogamescapeProvider,
+  f95zoneProvider,
+  itchioProvider
 ]

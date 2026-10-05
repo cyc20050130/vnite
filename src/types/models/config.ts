@@ -69,6 +69,10 @@ export interface configDocs {
       dlsite: {
         findIdInName: boolean
       }
+      f95zone: {
+        /** Optional forum session cookie so F95zone pages can be read while logged in. */
+        cookie: string
+      }
     }
     showcase: {
       sort: {
@@ -428,13 +432,26 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
         defaultMediaDataSource: 'google',
         cacheDescriptionImages: false,
         aggregateSearch: true,
-        aggregateProviders: ['bangumi', 'vndb', 'dlsite', 'ymgal', 'steam', 'igdb', 'erogamescape']
+        aggregateProviders: [
+          'bangumi',
+          'vndb',
+          'dlsite',
+          'ymgal',
+          'steam',
+          'igdb',
+          'erogamescape',
+          'f95zone',
+          'itchio'
+        ]
       },
       vndb: {
         tagSpoilerLevel: 0
       },
       dlsite: {
         findIdInName: false
+      },
+      f95zone: {
+        cookie: ''
       }
     },
     showcase: {

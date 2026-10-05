@@ -401,13 +401,14 @@ export async function getSteamVersion(appId: string): Promise<GameVersionInfo | 
     const response = await fetchWithTimeout(url)
     if (!response.ok) return null
     const data = (await response.json()) as {
-      response?: { required_version?: number; requiredVersion?: number }
+      response?: { required_version?: number; requiredVersion?: number; message?: string }
     }
     const required = data.response?.required_version ?? data.response?.requiredVersion
     if (!required) return null
+    const human = (data.response?.message || '').match(/(\d+(?:\.\d+)+)/)
     return {
       buildId: String(required),
-      version: 'build ' + required,
+      version: human ? human[1] : 'build ' + required,
       source: 'steam',
       confidence: 'exact',
       url: 'https://store.steampowered.com/app/' + appId
