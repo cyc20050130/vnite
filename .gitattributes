@@ -1,1 +1,4 @@
 * text=auto eol=lf
+
+# Bundled 7-Zip binaries and license text: store raw bytes (no EOL conversion).
+resources/7z/* -text

@@ -4,7 +4,16 @@ import log from 'electron-log/main'
 import { ConfigDBManager, GameDBManager } from '~/core/database'
 import { eventBus } from '~/core/events'
 import { ipcManager } from '~/core/ipc'
-import { extractArchive, compressFolder, testArchive, resolve7zPath } from './sevenZip'
+import {
+  extractArchive,
+  compressFolder,
+  testArchive,
+  resolve7zPath,
+  isPasswordError,
+  hasFull7z
+} from './sevenZip'
+import { classifyArchive, detectArchiveByMagic } from './archiveDetect'
+import { extractRarArchive, isRarPasswordError } from './rarEngine'
 
 const TMP_SUFFIX = '.vnite-tmp'
 const LONG_TIMEOUT = 6 * 60 * 60 * 1000
@@ -150,12 +159,20 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
   if (!archive || !archive.enabled) {
     throw new Error('Game ' + gameId + ' is not archive-backed')
   }
-  if (!resolve7zPath()) {
-    throw new Error('7-Zip CLI not found; cannot extract')
-  }
 
   const parts: string[] = archive.parts ?? []
   const archivePath = parts.find((p) => p && fse.existsSync(p)) ?? ''
+
+  const format =
+    (archive.format as string) ||
+    (archivePath ? classifyArchive(path.basename(archivePath))?.format : '') ||
+    (archivePath ? detectArchiveByMagic(archivePath) : '') ||
+    'other'
+  // Full 7-Zip reads RAR (multi-volume included); otherwise fall back to WASM unrar.
+  const useUnrar = format === 'rar' && !hasFull7z()
+  if (!useUnrar && !resolve7zPath()) {
+    throw new Error('7-Zip CLI not found; cannot extract')
+  }
 
   // Already extracted?
   if (archive.extractDir && (await fse.pathExists(archive.extractDir))) {
@@ -181,12 +198,27 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
   ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent: 0 })
 
   try {
-    const result = await extractArchive(archivePath, tmpDir, {
-      timeoutMs: LONG_TIMEOUT,
-      onProgress: (percent) => ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent })
-    })
-    if (result.code !== 0) {
-      throw new Error('7-Zip extract failed: ' + (result.stderr || result.stdout).slice(-300))
+    if (useUnrar) {
+      await extractRarArchive(archivePath, tmpDir, {
+        onProgress: (percent) => {
+          if (percent >= 0) {
+            ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent })
+          }
+        }
+      })
+    } else {
+      const result = await extractArchive(archivePath, tmpDir, {
+        timeoutMs: LONG_TIMEOUT,
+        onProgress: (percent) =>
+          ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent })
+      })
+      if (result.code !== 0) {
+        const output = (result.stderr || '') + (result.stdout || '')
+        if (isPasswordError(output)) {
+          await setState(gameId, 'passwordRequired', 'password required')
+        }
+        throw new Error('7-Zip extract failed: ' + output.slice(-300))
+      }
     }
     const found = await resolveEntrypoint(tmpDir, archive.entrypoint, true)
     if (!found) throw new Error('No executable found inside the archive')
@@ -206,7 +238,12 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
     return exe
   } catch (error) {
     await fse.remove(tmpDir).catch(() => undefined)
-    await setState(gameId, 'error', error instanceof Error ? error.message : String(error))
+    const message = error instanceof Error ? error.message : String(error)
+    if (isRarPasswordError(error) || /password/i.test(message)) {
+      await setState(gameId, 'passwordRequired', message)
+    } else {
+      await setState(gameId, 'error', message)
+    }
     throw error
   }
 }

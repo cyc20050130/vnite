@@ -25,10 +25,16 @@ export function resolve7zPath(): string | null {
 
   const roots: string[] = []
   const rp = (process as unknown as { resourcesPath?: string }).resourcesPath
-  if (rp) roots.push(rp)
+  if (rp) {
+    // Packaged app: resources/** is unpacked next to app.asar.
+    roots.push(path.join(rp, 'app.asar.unpacked', 'resources', '7z'))
+    roots.push(path.join(rp, 'resources', '7z'))
+    roots.push(rp)
+  }
+  roots.push(path.join(process.cwd(), 'resources', '7z'))
   roots.push(path.join(process.cwd(), 'resources'))
   try {
-    roots.push(path.join(__dirname, '..', '..', '..', '..', 'resources'))
+    roots.push(path.join(__dirname, '..', '..', '..', '..', 'resources', '7z'))
   } catch {
     // __dirname may be unavailable in some bundlers; ignore
   }
@@ -152,6 +158,12 @@ export async function testArchive(
   options: SevenZipRunOptions = {}
 ): Promise<SevenZipRunResult> {
   return run7z(['t', '-bsp1', '--', archivePath], options)
+}
+
+/** True when the resolved binary is the full 7-Zip (has the RAR codec), not standalone 7za. */
+export function hasFull7z(): boolean {
+  const bin = resolve7zPath()
+  return Boolean(bin && /(^|[\\/])7z\.exe$/i.test(bin))
 }
 
 export function isPasswordError(text: string): boolean {

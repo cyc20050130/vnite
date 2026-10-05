@@ -32,6 +32,8 @@ files:
 asarUnpack:
   - resources/**
   - '**/*.node'
+  # node-unrar-js reads this WASM file from disk at runtime.
+  - '**/node-unrar-js/dist/js/unrar.wasm'
   # subset-font resolves and reads this WASM file at runtime.
   - node_modules/harfbuzzjs/hb-subset.wasm
 

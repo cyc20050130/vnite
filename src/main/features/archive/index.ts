@@ -4,6 +4,7 @@ export * from './services/titleResolver'
 export * from './services/sevenZip'
 export * from './services/archiveList'
 export * from './services/archiveState'
+export * from './services/rarEngine'
 export { setupArchiveIPC } from './ipc'
 
 import { setupArchiveIPC } from './ipc'

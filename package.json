@@ -108,7 +108,8 @@
     "yet-another-react-lightbox": "^3.32.1",
     "zod": "^3.25.74",
     "zustand": "^5.0.6",
-    "7zip-bin": "^5.2.0"
+    "7zip-bin": "^5.2.0",
+    "node-unrar-js": "^2.0.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

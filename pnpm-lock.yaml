@@ -157,6 +157,9 @@ importers:
       node-screenshots-new:
         specifier: npm:node-screenshots@^0.2.4
         version: node-screenshots@0.2.4
+      node-unrar-js:
+        specifier: ^2.0.2
+        version: 2.0.2
       png-to-ico:
         specifier: ^2.1.8
         version: 2.1.8
@@ -5591,6 +5594,10 @@ packages:
   node-screenshots@0.2.8:
     resolution: {integrity: sha512-7O2ab89hkUgiXkrYj9iYCbJjY1iFJqIyZt0vuVtHFKlnajeFoyW+hur4CPxwwrnCUK0ahr0WLWQ5A6rCzF8rWQ==}
     engines: {node: '>= 12.22.0 < 13 || >= 14.17.0 < 15 || >= 15.12.0 < 16 || >= 16.0.0'}
+
+  node-unrar-js@2.0.2:
+    resolution: {integrity: sha512-hLNmoJzqaKJnod8yiTVGe9hnlNRHotUi0CreSv/8HtfRi/3JnRC8DvsmKfeGGguRjTEulhZK6zXX5PXoVuDZ2w==}
+    engines: {node: '>=10.0.0'}
 
   nopt@5.0.0:
     resolution: {integrity: sha512-Tbj67rffqceeLpcRXrT7vKAN8CwfPeIBgM7E6iBkmKLV7bEMwpGgYLGv0jACUsECaa/vuxP0IjEont6umdMgtQ==}
@@ -12851,6 +12858,8 @@ snapshots:
       node-screenshots-win32-arm64-msvc: 0.2.8
       node-screenshots-win32-ia32-msvc: 0.2.8
       node-screenshots-win32-x64-msvc: 0.2.8
+
+  node-unrar-js@2.0.2: {}
 
   nopt@5.0.0:
     dependencies:
