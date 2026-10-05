@@ -62,6 +62,8 @@ export interface configDocs {
         aggregateSearch: boolean
         /** Provider order used for aggregation (also acts as the tie-break priority). */
         aggregateProviders: string[]
+        /** Use the local folder name as the display name (译名) after scraping. */
+        nameFromFolder: boolean
       }
       vndb: {
         tagSpoilerLevel: 0 | 1 | 2
@@ -432,6 +434,7 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
         defaultMediaDataSource: 'google',
         cacheDescriptionImages: false,
         aggregateSearch: true,
+        nameFromFolder: true,
         aggregateProviders: [
           'bangumi',
           'vndb',

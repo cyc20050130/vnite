@@ -30,6 +30,7 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
   const [aggregateSearch, setAggregateSearch] = useConfigState(
     'game.scraper.common.aggregateSearch'
   )
+  const [nameFromFolder, setNameFromFolder] = useConfigState('game.scraper.common.nameFromFolder')
   const [extractRoot, setExtractRoot] = useConfigState('game.archive.defaultExtractRoot')
   const [autoCompress, setAutoCompress] = useConfigState('game.archive.autoCompressOnFinished')
   const { globalSettings, intervalMinutes, updateGlobalSettings, updateIntervalMinutes } =
@@ -146,6 +147,24 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
             </TooltipTrigger>
             <TooltipContent side="bottom" align="start">
               <div className={cn('text-xs')}>{t('globalSettings.aggregateSearchTooltip')}</div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Use folder name as localized name */}
+          <div className={cn('whitespace-nowrap select-none justify-self-start')}>
+            {t('globalSettings.nameFromFolder')}
+          </div>
+          <Tooltip>
+            <TooltipTrigger className={cn('p-0 max-w-none m-0 w-full')}>
+              <div>
+                <Switch
+                  checked={Boolean(nameFromFolder)}
+                  onCheckedChange={(value) => void setNameFromFolder(value)}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start">
+              <div className={cn('text-xs')}>{t('globalSettings.nameFromFolderTooltip')}</div>
             </TooltipContent>
           </Tooltip>
 

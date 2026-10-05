@@ -77,6 +77,8 @@
     "createScanner": "创建扫描器失败:"
   },
   "globalSettings": {
+    "nameFromFolder": "译名使用文件夹名",
+    "nameFromFolderTooltip": "刮削到数据后，把译名（显示名）设置为该游戏文件夹或压缩包的名字，原名不受影响。",
     "title": "全局扫描器设置",
     "scanInterval": "扫描间隔",
     "scanIntervalTooltip": "所有扫描器的扫描间隔时间，单位为分钟",

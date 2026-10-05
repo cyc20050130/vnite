@@ -361,6 +361,8 @@
         }
       },
       "information": {
+        "useFolderName": "Folder name",
+        "useFolderNameTip": "Set the localized name to the game folder (or archive) name",
         "fields": {
           "originalName": "Original Name",
           "localizedName": "Localized Name",

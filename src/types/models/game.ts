@@ -46,6 +46,8 @@ export interface gameDoc {
       label: string
       url: string
     }[]
+    /** Folder (or archive) name the game was added from, used as the display name. */
+    localName: string
     /** Provider this game was added from (used for version checks). */
     dataSource: string
     dataSourceId: string
@@ -321,6 +323,7 @@ export const DEFAULT_GAME_VALUES: Readonly<gameDoc> = {
       actors?: string[]
     }[],
     relatedSites: [] as { label: string; url: string }[],
+    localName: '',
     dataSource: '',
     dataSourceId: '',
     steamId: '',

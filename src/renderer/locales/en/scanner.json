@@ -77,6 +77,8 @@
     "createScanner": "Failed to create scanner:"
   },
   "globalSettings": {
+    "nameFromFolder": "Name from folder",
+    "nameFromFolderTooltip": "After scraping, use the game folder (or archive) name as the localized display name. The original name is untouched.",
     "title": "Global Scanner Settings",
     "scanInterval": "Scan Interval",
     "scanIntervalTooltip": "Scan interval time for all scanners, in minutes",

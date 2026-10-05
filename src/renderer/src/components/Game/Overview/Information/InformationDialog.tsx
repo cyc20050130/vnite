@@ -2,11 +2,13 @@ import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ArrayInput } from '@ui/array-input'
+import { Button } from '@ui/button'
 import { DateTimeInput } from '@ui/date-input'
 import { Dialog, DialogContent } from '@ui/dialog'
 import { Input } from '@ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@ui/tooltip'
 import { useGameState } from '~/hooks'
+import { getGameStore } from '~/stores/game/gameStoreFactory'
 import { cn } from '~/utils'
 
 export function InformationDialog({
@@ -26,6 +28,9 @@ export function InformationDialog({
   )
   const [sortName, setSortName, saveSortName] = useGameState(gameId, 'metadata.sortName', true)
   const [name, setName, saveName] = useGameState(gameId, 'metadata.name', true)
+  const [localName] = useGameState(gameId, 'metadata.localName')
+  const [markPath] = useGameState(gameId, 'utils.markPath')
+  const [gamePath] = useGameState(gameId, 'path.gamePath')
   const [developers, setDevelopers, saveDevelopers] = useGameState(
     gameId,
     'metadata.developers',
@@ -54,6 +59,19 @@ export function InformationDialog({
     | 'genres'
     | null
   >(null)
+
+  const basenameOf = (value?: string): string => {
+    if (!value) return ''
+    const parts = value.split(/[\\/]/).filter(Boolean)
+    const last = parts[parts.length - 1] ?? ''
+    return last.replace(/\.(rar|zip|7z|001|r\d{2}|part\d+)$/i, '')
+  }
+
+  async function applyFolderName(): Promise<void> {
+    const folderName = (localName || basenameOf(gamePath) || basenameOf(markPath)).trim()
+    if (!folderName) return
+    await getGameStore(gameId).getState().setValue('metadata.name', folderName)
+  }
 
   async function handleOpenChange(open: boolean): Promise<void> {
     if (!open && activeFieldRef.current) {
@@ -115,16 +133,34 @@ export function InformationDialog({
           <div className={cn('whitespace-nowrap select-none justify-self-start')}>
             {t('detail.overview.information.fields.localizedName')}
           </div>
-          <Input
-            value={name}
-            onChange={(e) => {
-              activeFieldRef.current = 'name'
-              setName(e.target.value)
-            }}
-            onBlur={saveName}
-            placeholder={t('detail.overview.information.empty')}
-            className={cn('text-sm')}
-          />
+          <div className={cn('flex items-center gap-2')}>
+            <Input
+              value={name}
+              onChange={(e) => {
+                activeFieldRef.current = 'name'
+                setName(e.target.value)
+              }}
+              onBlur={saveName}
+              placeholder={t('detail.overview.information.empty')}
+              className={cn('text-sm')}
+            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn('shrink-0')}
+                  onClick={() => void applyFolderName()}
+                  disabled={!(localName || gamePath || markPath)}
+                >
+                  <span className={cn('text-xs')}>{t('detail.overview.information.useFolderName')}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {t('detail.overview.information.useFolderNameTip')}
+              </TooltipContent>
+            </Tooltip>
+          </div>
           {/* Sort Name */}
           <div className={cn('whitespace-nowrap select-none justify-self-start')}>
             {t('detail.overview.information.fields.sortName')}

@@ -361,6 +361,8 @@
         }
       },
       "information": {
+        "useFolderName": "文件夹名",
+        "useFolderNameTip": "把译名设置为该游戏所在文件夹（或压缩包）的名字",
         "fields": {
           "originalName": "原名",
           "localizedName": "译名",

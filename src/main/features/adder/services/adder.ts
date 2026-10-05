@@ -285,6 +285,24 @@ export async function addGameToDB({
       [`${dataSource}Id`]: dataSourceId
     }
 
+    // Remember the local folder / archive name and, when configured, use it as the
+    // display name (译名) so a scraped localisation does not replace it.
+    const localName =
+      sourceType === 'archive' && gamePath
+        ? path.basename(gamePath, path.extname(gamePath))
+        : path.basename(dirPath || '')
+    gameDoc.metadata.localName = localName
+    if (localName) {
+      try {
+        const nameFromFolder = await ConfigDBManager.getConfigValue(
+          'game.scraper.common.nameFromFolder'
+        )
+        if (nameFromFolder) gameDoc.metadata.name = localName
+      } catch (error) {
+        log.warn('[Adder] Failed to read nameFromFolder config: ' + String(error))
+      }
+    }
+
     if (playTime) {
       gameDoc.record.playTime = playTime
     }
