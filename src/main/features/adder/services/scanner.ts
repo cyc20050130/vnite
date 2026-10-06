@@ -594,6 +594,8 @@ export class GameScanner extends EventEmitter {
             sourceType: entryKind === 'archive' ? 'archive' : 'folder',
             archive: archiveInfo,
             version,
+            // Archives use the cleaned scanner title so the localized name stays readable.
+            localName: entryKind === 'archive' ? searchName : undefined,
             upscaleEnabled: upscaleScale > 0,
             upscaleOptionsOverride: upscaleScale > 0 ? { scale: upscaleScale } : undefined,
             targetCollection,

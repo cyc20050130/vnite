@@ -55,6 +55,7 @@ export async function addGameToDB({
   sourceType,
   archive,
   version,
+  localName,
   targetCollection,
   scanRoot
 }: {
@@ -69,6 +70,8 @@ export async function addGameToDB({
   sourceType?: 'folder' | 'archive'
   archive?: AddGameArchiveInput
   version?: string
+  /** Cleaned display name (used by the scanner for archives). */
+  localName?: string
   targetCollection?: string
   scanRoot?: string
 }): Promise<string> {
@@ -287,17 +290,18 @@ export async function addGameToDB({
 
     // Remember the local folder / archive name and, when configured, use it as the
     // display name (译名) so a scraped localisation does not replace it.
-    const localName =
-      sourceType === 'archive' && gamePath
+    const resolvedLocalName =
+      (localName ?? '').trim() ||
+      (sourceType === 'archive' && gamePath
         ? path.basename(gamePath, path.extname(gamePath))
-        : path.basename(dirPath || '')
-    gameDoc.metadata.localName = localName
-    if (localName) {
+        : path.basename(dirPath || ''))
+    gameDoc.metadata.localName = resolvedLocalName
+    if (resolvedLocalName) {
       try {
         const nameFromFolder = await ConfigDBManager.getConfigValue(
           'game.scraper.common.nameFromFolder'
         )
-        if (nameFromFolder) gameDoc.metadata.name = localName
+        if (nameFromFolder) gameDoc.metadata.name = resolvedLocalName
       } catch (error) {
         log.warn('[Adder] Failed to read nameFromFolder config: ' + String(error))
       }
