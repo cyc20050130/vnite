@@ -110,7 +110,9 @@
     "skipIncomplete": "跳过未下载完的压缩包",
     "skipIncompleteTooltip": "扫描时检测正在下载/被占用/缺少分卷的压缩包并跳过，避免生成坏的游戏条目；可在游戏属性页手动重新检测。",
     "renameFolderToName": "按译名重命名文件夹",
-    "renameFolderToNameTooltip": "刮削到数据后，用数据源返回的中文名（译名）重命名游戏文件夹；会同步更新启动路径与解压目录。仅改文件夹，不动压缩包文件名。"
+    "renameFolderToNameTooltip": "刮削到数据后，用数据源返回的中文名（译名）重命名游戏文件夹；会同步更新启动路径与解压目录。仅改文件夹，不动压缩包文件名。",
+    "preferChineseName": "跨源查找中文名",
+    "preferChineseNameTooltip": "当前数据源没有中文名时（例如只有罗马音），再去 Bangumi / Ymgal / VNDB 等源搜一次取中文名；都找不到就不填译名，保持原名。"
   },
   "dataSources": {
     "steam": "Steam",

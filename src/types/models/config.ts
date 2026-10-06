@@ -84,6 +84,8 @@ export interface configDocs {
         aggregateProviders: string[]
         /** Rename the game folder to the scraped localized name (译名) after scraping. */
         renameFolderToName: boolean
+        /** Try other providers for a Chinese name when the matched source has none. */
+        preferChineseName: boolean
       }
       vndb: {
         tagSpoilerLevel: 0 | 1 | 2
@@ -470,6 +472,7 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
         cacheDescriptionImages: false,
         aggregateSearch: true,
         renameFolderToName: true,
+        preferChineseName: true,
         aggregateProviders: [
           'bangumi',
           'vndb',

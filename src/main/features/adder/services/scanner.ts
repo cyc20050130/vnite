@@ -21,6 +21,7 @@ import { guessVersion, parseArchiveName } from '~/features/archive/services/titl
 import { planArchiveGroups, type DuplicateInfo } from '~/features/archive/services/duplicateResolver'
 import { detectIncompleteArchive } from '~/features/archive/services/incompleteDetect'
 import { listArchive } from '~/features/archive/services/archiveList'
+import { isChineseName } from '~/features/scraper/services/nameMatch'
 import { addGameToDB } from './adder'
 
 // Scanner configuration type
@@ -631,6 +632,29 @@ export class GameScanner extends EventEmitter {
             }
           }
 
+          // 译名：数据源给的中文名优先。当前源没给中文名（例如 VNDB 只有罗马音）时，
+          // 再去其它中文能力更强的数据源试一次；都找不到就不填（保持原名）。
+          let nameOverride: string | undefined
+          if (!isChineseName(match.name)) {
+            try {
+              const preferChinese = await ConfigDBManager.getConfigValue(
+                'game.scraper.common.preferChineseName'
+              )
+              if (preferChinese) {
+                const found = await scraperManager.findChineseName(
+                  [parsedName.mainTitle, parsedName.translation].filter(Boolean),
+                  { timeoutMs: 12000 }
+                )
+                if (found) {
+                  nameOverride = found.name
+                  log.info('[Scanner] Using Chinese name from ' + found.source + ': ' + found.name)
+                }
+              }
+            } catch (error) {
+              log.warn('[Scanner] Chinese name lookup failed: ' + String(error))
+            }
+          }
+
           const upscaleScale = scannerList[scannerId]?.upscaleScale ?? 0
 
           // Best-effort header-only listing: fills entrypoint / encryption flags.
@@ -681,6 +705,7 @@ export class GameScanner extends EventEmitter {
             version,
             // localName 只记录来源文件夹/压缩包名；译名由数据源提供。
             localName: rawName,
+            nameOverride,
             duplicates: entryKind === 'archive' ? duplicateInfos : undefined,
             upscaleEnabled: upscaleScale > 0,
             upscaleOptionsOverride: upscaleScale > 0 ? { scale: upscaleScale } : undefined,

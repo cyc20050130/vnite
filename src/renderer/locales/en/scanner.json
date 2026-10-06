@@ -110,7 +110,9 @@
     "skipIncomplete": "Skip incomplete archives",
     "skipIncompleteTooltip": "Skip archives that are still downloading, locked or missing volumes so no broken game entry is created. Re-check manually from the archive panel.",
     "renameFolderToName": "Rename folder to the name",
-    "renameFolderToNameTooltip": "After scraping, rename the game folder to the localized name returned by the provider and update the stored paths. Archive files are left untouched."
+    "renameFolderToNameTooltip": "After scraping, rename the game folder to the localized name returned by the provider and update the stored paths. Archive files are left untouched.",
+    "preferChineseName": "Look for a Chinese name",
+    "preferChineseNameTooltip": "When the matched source has no Chinese title (e.g. only romaji), try Bangumi / Ymgal / VNDB and use their Chinese name. If nothing is found the name stays as-is."
   },
   "dataSources": {
     "steam": "Steam",

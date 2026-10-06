@@ -20,6 +20,7 @@ import {
   GameVersionInfo
 } from '@appTypes/utils'
 import { withTimeout } from '~/utils'
+import { isChineseName, isSameGameName, nameSimilarity } from './nameMatch'
 import { Transformer } from '~/features/transformer'
 import log from 'electron-log/main'
 
@@ -721,6 +722,55 @@ export class ScraperManager {
    * Query several providers at once and merge/dedupe/rank their results.
    * Provider order in options.providers doubles as the tie-break priority.
    */
+  /**
+   * Look for a Chinese localized name across the Chinese-capable providers.
+   * Returns null when nothing convincing is found, so the caller keeps the original name
+   * (a missing translation is better than a wrong one).
+   */
+  public async findChineseName(
+    queries: string[],
+    options: { providers?: string[]; timeoutMs?: number } = {}
+  ): Promise<{ name: string; source: string; id: string } | null> {
+    const providers =
+      options.providers && options.providers.length > 0
+        ? options.providers
+        : ['bangumi', 'ymgal', 'vndb', 'dlsite', 'steam']
+    const timeoutMs = options.timeoutMs ?? 15000
+
+    for (const rawQuery of queries) {
+      const query = (rawQuery ?? '').trim()
+      if (query.length < 2) continue
+      for (const providerId of providers) {
+        const provider = this.getProvider(providerId)
+        if (!provider?.searchGames) continue
+        try {
+          const results = await Promise.race([
+            provider.searchGames(query),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('timeout')), timeoutMs)
+            )
+          ])
+          for (const candidate of (results ?? []).slice(0, 3)) {
+            if (!candidate?.name || !isChineseName(candidate.name)) continue
+            // A Chinese query should match closely; a Japanese query may match loosely
+            // because the provider answers with its own localized title.
+            const confident =
+              isSameGameName(candidate.name, query) ||
+              nameSimilarity(candidate.name, query) >= (isChineseName(query) ? 0.45 : 0.35)
+            if (!confident) continue
+            log.info(
+              '[Scraper] Chinese name from ' + providerId + ': ' + candidate.name + ' (query: ' + query + ')'
+            )
+            return { name: candidate.name, source: providerId, id: candidate.id }
+          }
+        } catch (error) {
+          log.warn('[Scraper] Chinese name lookup failed on ' + providerId + ': ' + String(error))
+        }
+      }
+    }
+    return null
+  }
+
   public async aggregateSearchGames(
     gameName: string,
     options: AggregatedSearchOptions = {}

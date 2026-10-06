@@ -57,6 +57,7 @@ export async function addGameToDB({
   archive,
   version,
   localName,
+  nameOverride,
   duplicates,
   targetCollection,
   scanRoot
@@ -74,6 +75,8 @@ export async function addGameToDB({
   version?: string
   /** Cleaned display name (used by the scanner for archives). */
   localName?: string
+  /** Localized (Chinese) name found on another provider. */
+  nameOverride?: string
   /** Other archives holding the same game that were not imported. */
   duplicates?: {
     path: string
@@ -308,7 +311,10 @@ export async function addGameToDB({
     // localName only records where the game came from; the display name (译名) is the
     // provider's localized name. Fall back to the local name only when the provider had none.
     gameDoc.metadata.localName = resolvedLocalName
-    if (!gameDoc.metadata.name && resolvedLocalName) {
+    if (nameOverride && nameOverride.trim().length > 0) {
+      // Provider-priority: a Chinese name from another source wins over a romaji title.
+      gameDoc.metadata.name = nameOverride.trim()
+    } else if (!gameDoc.metadata.name && resolvedLocalName) {
       gameDoc.metadata.name = resolvedLocalName
     }
 

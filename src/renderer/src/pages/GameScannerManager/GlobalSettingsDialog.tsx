@@ -33,6 +33,9 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
   const [renameFolderToName, setRenameFolderToName] = useConfigState(
     'game.scraper.common.renameFolderToName'
   )
+  const [preferChineseName, setPreferChineseName] = useConfigState(
+    'game.scraper.common.preferChineseName'
+  )
   const [skipIncomplete, setSkipIncomplete] = useConfigState('game.archive.skipIncomplete')
   const [preserveSaves, setPreserveSaves] = useConfigState('game.archive.preserveSaves')
   const [duplicatePriority, setDuplicatePriority] = useConfigState('game.archive.duplicatePriority')
@@ -171,6 +174,24 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
             </TooltipTrigger>
             <TooltipContent side="bottom" align="start">
               <div className={cn('text-xs')}>{t('globalSettings.renameFolderToNameTooltip')}</div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Prefer a Chinese name from any provider */}
+          <div className={cn('whitespace-nowrap select-none justify-self-start')}>
+            {t('globalSettings.preferChineseName')}
+          </div>
+          <Tooltip>
+            <TooltipTrigger className={cn('p-0 max-w-none m-0 w-full')}>
+              <div>
+                <Switch
+                  checked={Boolean(preferChineseName)}
+                  onCheckedChange={(value) => void setPreferChineseName(value)}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start">
+              <div className={cn('text-xs')}>{t('globalSettings.preferChineseNameTooltip')}</div>
             </TooltipContent>
           </Tooltip>
 
