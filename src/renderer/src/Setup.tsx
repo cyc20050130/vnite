@@ -4,6 +4,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { changeFontFamily, changeFontSize, changeFontWeight, navigateToGame, setup } from '~/utils'
 import { ipcManager } from './app/ipc'
 import { useConfigState } from './hooks'
+import { useArchiveBatchStore } from '~/stores/archiveBatchStore'
 import { useGameAdderStore } from './pages/GameAdder/store'
 import { usePluginInfoStore } from './pages/Plugin/store'
 import { randomGame } from './stores/game'
@@ -52,6 +53,8 @@ export function Setup(): React.JSX.Element {
   const [goForwardHotKey] = useConfigState('hotkeys.goForward')
   const [addGameHotkey] = useConfigState('hotkeys.addGame')
   const [randomGameHotkey] = useConfigState('hotkeys.randomGame')
+  const [taskCenterHotkey] = useConfigState('hotkeys.taskCenter')
+  const [cancelBatchHotkey] = useConfigState('hotkeys.cancelBatch')
 
   const setIsGameAdderOpen = useGameAdderStore((state) => state.setIsOpen)
 
@@ -124,6 +127,22 @@ export function Setup(): React.JSX.Element {
     {
       preventDefault: true
     }
+  )
+  useHotkeys(
+    taskCenterHotkey,
+    () => {
+      useArchiveBatchStore.getState().setTaskCenterOpen(true)
+    },
+    { preventDefault: true }
+  )
+  useHotkeys(
+    cancelBatchHotkey,
+    () => {
+      const { jobs, cancel } = useArchiveBatchStore.getState()
+      const running = jobs.find((job) => job.status === 'running')
+      if (running) void cancel(running.id)
+    },
+    { preventDefault: true }
   )
   useHotkeys(
     goBackHotKey,

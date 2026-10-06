@@ -27,10 +27,12 @@ export function TaskCenter(): React.JSX.Element {
   const { t } = useTranslation('game')
   const jobs = useArchiveBatchStore((state) => state.jobs)
   const openDialog = useArchiveBatchStore((state) => state.openDialog)
+  const open = useArchiveBatchStore((state) => state.taskCenterOpen)
+  const setOpen = useArchiveBatchStore((state) => state.setTaskCenterOpen)
   const running = jobs.filter((job) => job.status === 'running').length
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>

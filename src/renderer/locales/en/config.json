@@ -366,6 +366,11 @@
     "others": {
       "title": "Others",
       "randomGame": "Random Game"
+    },
+    "archiveTasks": {
+      "title": "Archives and tasks",
+      "taskCenter": "Open background tasks",
+      "cancelBatch": "Cancel running batch job"
     }
   },
   "cloudSync": {

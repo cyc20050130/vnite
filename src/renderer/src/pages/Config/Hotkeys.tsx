@@ -134,6 +134,25 @@ export function Hotkeys(): React.JSX.Element {
               />
             </div>
           </div>
+
+          {/* Archive and task hotkeys */}
+          <div className={cn('space-y-4')}>
+            <div className={cn('border-b pb-2')}>{t('hotkeys.archiveTasks.title')}</div>
+            <div className={cn('space-y-4')}>
+              <ConfigItem
+                hookType="config"
+                path="hotkeys.taskCenter"
+                title={t('hotkeys.archiveTasks.taskCenter')}
+                controlType="hotkey"
+              />
+              <ConfigItem
+                hookType="config"
+                path="hotkeys.cancelBatch"
+                title={t('hotkeys.archiveTasks.cancelBatch')}
+                controlType="hotkey"
+              />
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

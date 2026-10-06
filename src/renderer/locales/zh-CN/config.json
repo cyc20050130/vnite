@@ -366,6 +366,11 @@
     "others": {
       "title": "其它",
       "randomGame": "随机游戏"
+    },
+    "archiveTasks": {
+      "title": "压缩包与任务",
+      "taskCenter": "打开后台任务",
+      "cancelBatch": "取消当前批量任务"
     }
   },
   "cloudSync": {

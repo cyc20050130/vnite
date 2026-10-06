@@ -13,6 +13,8 @@ interface ArchiveBatchState {
   retryFailed: (jobId: string, concurrency?: number) => Promise<void>
   openDialog: (jobId?: string) => void
   closeDialog: () => void
+  taskCenterOpen: boolean
+  setTaskCenterOpen: (open: boolean) => void
 }
 
 function upsert(jobs: ArchiveBatchJob[], job: ArchiveBatchJob): ArchiveBatchJob[] {
@@ -58,7 +60,10 @@ export const useArchiveBatchStore = create<ArchiveBatchState>((set, get) => ({
     set({ dialogOpen: true, activeJobId: target })
   },
 
-  closeDialog: (): void => set({ dialogOpen: false })
+  closeDialog: (): void => set({ dialogOpen: false }),
+
+  taskCenterOpen: false,
+  setTaskCenterOpen: (open): void => set({ taskCenterOpen: open })
 }))
 
 /** Subscribe to batch events once, from a long-lived component. */

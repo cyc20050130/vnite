@@ -214,6 +214,8 @@ export interface configDocs {
     goForward: string
     addGame: string
     randomGame: string
+    taskCenter: string
+    cancelBatch: string
   }
   updater: {
     allowPrerelease: boolean
@@ -588,7 +590,9 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
     goBack: 'alt+left',
     goForward: 'alt+right',
     addGame: 'alt+shift+a',
-    randomGame: 'ctrl+shift+r'
+    randomGame: 'ctrl+shift+r',
+    taskCenter: 'alt+shift+t',
+    cancelBatch: 'alt+shift+x'
   },
   updater: {
     allowPrerelease: false
