@@ -285,6 +285,7 @@ type MainIpcEvents =
       'archive:add-passwords': (values: string[], label?: string) => number
       'archive:remove-password': (id: string) => void
       'archive:retry-password': (gameId: string) => string
+      'archive:backup-saves': (gameId: string) => { files: number; mode: string }
       'scraper:check-game-exists': (dataSource: string, identifier: ScraperIdentifier) => boolean
       'scraper:get-game-version': (
         dataSource: string,

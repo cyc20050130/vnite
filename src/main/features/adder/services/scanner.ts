@@ -18,6 +18,7 @@ import {
 } from '~/utils'
 import { classifyArchive } from '~/features/archive/services/archiveDetect'
 import { guessVersion } from '~/features/archive/services/titleResolver'
+import { planArchiveGroups, type DuplicateInfo } from '~/features/archive/services/duplicateResolver'
 import { listArchive } from '~/features/archive/services/archiveList'
 import { addGameToDB } from './adder'
 
@@ -357,7 +358,13 @@ export class GameScanner extends EventEmitter {
       }
 
       // Get all folders
-      let foldersToScan: { name: string; dirPath: string }[] = []
+      let foldersToScan: {
+      name: string
+      dirPath: string
+      gamePath?: string
+      archivePaths?: string[]
+      entryKind?: 'folder' | 'archive'
+    }[] = []
 
       // Get folders based on scan mode
       const scanMode = scanner.scanMode === 'hierarchy' ? 'hierarchy' : 'auto'
@@ -382,6 +389,37 @@ export class GameScanner extends EventEmitter {
 
       // Apply ignore list
       foldersToScan = this.applyIgnoreList(foldersToScan, ignoreList)
+
+      // Folders holding several archives become one candidate per archive, then the
+      // candidates that contain the same game are reduced to the best one.
+      const expanded = foldersToScan.flatMap((folder) =>
+        folder.archivePaths && folder.archivePaths.length > 1
+          ? folder.archivePaths.map((archivePath) => ({
+              ...folder,
+              name: path.basename(archivePath),
+              gamePath: archivePath,
+              archivePaths: undefined as string[] | undefined
+            }))
+          : [folder]
+      )
+      const duplicatePriority = await ConfigDBManager.getConfigValue(
+        'game.archive.duplicatePriority'
+      )
+      const plan = await planArchiveGroups(
+        expanded,
+        duplicatePriority === 'version' ? 'version' : 'translation'
+      )
+      if (expanded.length !== plan.keep.length) {
+        log.info(
+          '[Scanner] Kept ' +
+            plan.keep.length +
+            ' of ' +
+            expanded.length +
+            ' archive candidates; duplicates are recorded on the kept game'
+        )
+      }
+      foldersToScan = plan.keep
+      const duplicatePlan = plan.duplicates
 
       // Update progress info
       scannerProgress.foldersToProcess = foldersToScan.map((f) => f.dirPath)
@@ -409,7 +447,8 @@ export class GameScanner extends EventEmitter {
           scanner.dataSource,
           folder,
           scannerId,
-          Boolean(scanner.normalizeFolderName)
+          Boolean(scanner.normalizeFolderName),
+          duplicatePlan.get(folder)
         )
 
         // Update progress after each folder is processed
@@ -438,7 +477,8 @@ export class GameScanner extends EventEmitter {
     dataSource: string,
     folder: { name: string; dirPath: string; gamePath?: string; entryKind?: 'folder' | 'archive' },
     scannerId: string,
-    normalizeFolderName: boolean
+    normalizeFolderName: boolean,
+    duplicateInfos?: DuplicateInfo[]
   ): Promise<void> {
     if (this.scanProgress.status !== 'scanning') {
       return // Exit if scanning has been stopped
@@ -447,8 +487,11 @@ export class GameScanner extends EventEmitter {
     const scannerProgress = this.scanProgress.scannerProgresses[scannerId]
 
     try {
-      // Check if the game already exists — deduplicate by game ID
-      const existingGameId = await GameDBManager.findExistingGameIdByPath(folder.dirPath)
+      // Check if the game already exists. Archives are matched by their exact file so
+      // sibling archives of the same folder are not mistaken for the same game.
+      const existingGameId = folder.gamePath
+        ? await GameDBManager.findExistingGameIdByGamePath(folder.gamePath)
+        : await GameDBManager.findExistingGameIdByPath(folder.dirPath)
 
       if (existingGameId) {
         // Already exists — only count once per unique game ID
@@ -596,6 +639,7 @@ export class GameScanner extends EventEmitter {
             version,
             // Archives use the cleaned scanner title so the localized name stays readable.
             localName: entryKind === 'archive' ? searchName : undefined,
+            duplicates: entryKind === 'archive' ? duplicateInfos : undefined,
             upscaleEnabled: upscaleScale > 0,
             upscaleOptionsOverride: upscaleScale > 0 ? { scale: upscaleScale } : undefined,
             targetCollection,

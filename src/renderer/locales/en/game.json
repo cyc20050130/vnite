@@ -48,6 +48,16 @@
     "stillFailing": "{{count}} still failing"
   },
   "archivePanel": {
+    "saves": "Saves",
+    "backupSaves": "Back up saves",
+    "saveBackupFiles": "Files backed up",
+    "saveBackupAt": "Backed up at",
+    "saveBackupPath": "Vault",
+    "savesHint": "Saves inside the game folder are backed up before re-compressing and restored after the next extraction. A configured save path uses the Vnite save system instead.",
+    "duplicates": "Duplicate archives",
+    "duplicatesHint": "Other archives of the same game. Versions and Chinese quality were compared; only the best was imported.",
+    "unknownVersion": "unknown",
+    "backupDone": "Save backup finished",
     "tab": "Archive",
     "status": "Status",
     "stateValue": {

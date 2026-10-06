@@ -50,6 +50,16 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
   const [newPassword, setNewPassword] = useState('')
   const [keepArchive, setKeepArchive] = useGameLocalState(gameId, 'archive.keepArchive')
 
+  const backupSaves = useCallback(async (): Promise<void> => {
+    try {
+      const result = await ipcManager.invoke('archive:backup-saves', gameId)
+      toast.success(t('archivePanel.backupDone') + ' - ' + result.mode + ' / ' + result.files)
+      await refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error))
+    }
+  }, [gameId, t, refresh])
+
   const refresh = useCallback(async (): Promise<void> => {
     try {
       setStatus(await ipcManager.invoke('archive:get-status', gameId))
@@ -163,6 +173,61 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
           {status?.lastError ? <Row label={t('archivePanel.lastError')} value={status.lastError} /> : null}
         </CardContent>
       </Card>
+
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>{t('archivePanel.saves')}</CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void backupSaves()}
+            disabled={busy || !status?.enabled}
+          >
+            {t('archivePanel.backupSaves')}
+          </Button>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 text-sm">
+          <Row
+            label={t('archivePanel.saveBackupFiles')}
+            value={String(status?.saveBackupFiles ?? 0)}
+          />
+          <Row
+            label={t('archivePanel.saveBackupAt')}
+            value={status?.saveBackupAt ? status.saveBackupAt.slice(0, 19).replace('T', ' ') : '-'}
+          />
+          <Row label={t('archivePanel.saveBackupPath')} value={status?.saveBackupPath || '-'} mono />
+          <span className="text-muted-foreground">{t('archivePanel.savesHint')}</span>
+        </CardContent>
+      </Card>
+
+      {status && status.duplicates.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('archivePanel.duplicates')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm">
+            <span className="text-muted-foreground">{t('archivePanel.duplicatesHint')}</span>
+            {status.duplicates.map((duplicate) => (
+              <div
+                key={duplicate.path}
+                className="flex flex-col gap-1 rounded-md border p-2"
+              >
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">
+                    {duplicate.translation || t('archivePanel.unknownVersion')}
+                  </Badge>
+                  <Badge variant="outline">
+                    {duplicate.version || t('archivePanel.unknownVersion')}
+                  </Badge>
+                  <span className="text-muted-foreground">{formatBytes(duplicate.sizeBytes)}</span>
+                </div>
+                <span className="break-all font-mono text-xs">{duplicate.path}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

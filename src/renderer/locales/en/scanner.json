@@ -77,6 +77,10 @@
     "createScanner": "Failed to create scanner:"
   },
   "globalSettings": {
+    "preserveSaves": "Back up saves",
+    "preserveSavesTooltip": "Back up saves before re-compressing (uses the Vnite save system, or auto-detects / mirrors in-folder saves) and restore them after the next extraction.",
+    "duplicatePriority": "Prefer newest version",
+    "duplicatePriorityTooltip": "When several archives hold the same game, keep the highest version; turn off to keep the best Chinese translation instead.",
     "nameFromFolder": "Name from folder",
     "nameFromFolderTooltip": "After scraping, use the game folder (or archive) name as the localized display name. The original name is untouched.",
     "title": "Global Scanner Settings",

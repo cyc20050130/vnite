@@ -31,6 +31,8 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
     'game.scraper.common.aggregateSearch'
   )
   const [nameFromFolder, setNameFromFolder] = useConfigState('game.scraper.common.nameFromFolder')
+  const [preserveSaves, setPreserveSaves] = useConfigState('game.archive.preserveSaves')
+  const [duplicatePriority, setDuplicatePriority] = useConfigState('game.archive.duplicatePriority')
   const [extractRoot, setExtractRoot] = useConfigState('game.archive.defaultExtractRoot')
   const [autoCompress, setAutoCompress] = useConfigState('game.archive.autoCompressOnFinished')
   const { globalSettings, intervalMinutes, updateGlobalSettings, updateIntervalMinutes } =
@@ -165,6 +167,44 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
             </TooltipTrigger>
             <TooltipContent side="bottom" align="start">
               <div className={cn('text-xs')}>{t('globalSettings.nameFromFolderTooltip')}</div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Preserve saves before re-compressing */}
+          <div className={cn('whitespace-nowrap select-none justify-self-start')}>
+            {t('globalSettings.preserveSaves')}
+          </div>
+          <Tooltip>
+            <TooltipTrigger className={cn('p-0 max-w-none m-0 w-full')}>
+              <div>
+                <Switch
+                  checked={Boolean(preserveSaves)}
+                  onCheckedChange={(value) => void setPreserveSaves(value)}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start">
+              <div className={cn('text-xs')}>{t('globalSettings.preserveSavesTooltip')}</div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Prefer the newest version when de-duplicating */}
+          <div className={cn('whitespace-nowrap select-none justify-self-start')}>
+            {t('globalSettings.duplicatePriority')}
+          </div>
+          <Tooltip>
+            <TooltipTrigger className={cn('p-0 max-w-none m-0 w-full')}>
+              <div>
+                <Switch
+                  checked={duplicatePriority === 'version'}
+                  onCheckedChange={(value) =>
+                    void setDuplicatePriority(value ? 'version' : 'translation')
+                  }
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start">
+              <div className={cn('text-xs')}>{t('globalSettings.duplicatePriorityTooltip')}</div>
             </TooltipContent>
           </Tooltip>
 

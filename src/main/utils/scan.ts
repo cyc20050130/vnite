@@ -17,6 +17,8 @@ export interface GameFolderCandidate {
   name: string
   dirPath: string
   gamePath?: string
+  /** All archives found in this folder, so duplicates can be compared. */
+  archivePaths?: string[]
   entryKind: GameEntryKind
 }
 
@@ -154,12 +156,14 @@ async function scanForGameFolders(rootPath: string): Promise<GameFolderCandidate
           // A folder holding archive(s) but no executable is an archive-backed game.
           const archives = await checkForArchives(fullPath)
           if (archives.length > 0) {
+            archives.sort((a, b) => a.localeCompare(b))
             return {
               type: 'game',
               folder: {
                 name: item.name,
                 dirPath: fullPath,
                 gamePath: archives[0],
+                archivePaths: archives,
                 entryKind: 'archive' as const
               }
             }

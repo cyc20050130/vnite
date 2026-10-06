@@ -16,6 +16,8 @@ import {
 import { classifyArchive, detectArchiveByMagic } from './archiveDetect'
 import { extractRarArchive, isRarPasswordError } from './rarEngine'
 import { resolvePasswordForArchive } from './passwordVault'
+import { backupSaves, restoreSaves } from './saveVault'
+import { backupGameSave, searchGameSavePaths } from '~/features/game'
 
 const TMP_SUFFIX = '.vnite-tmp'
 const LONG_TIMEOUT = 6 * 60 * 60 * 1000
@@ -242,6 +244,14 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
     await markExtracted(gameId, extractDir, exe, path.relative(extractDir, exe).split(path.sep).join('/'))
     await GameDBManager.setGameLocalValue(gameId, 'archive.archiveBytes', 0)
 
+    // Put back any saves mirrored before the last compression.
+    try {
+      const preserveSaves = await ConfigDBManager.getConfigValue('game.archive.preserveSaves')
+      if (preserveSaves) await restoreSaves(gameId, extractDir)
+    } catch (error) {
+      log.warn('[Archive] Save restore failed for ' + gameId + ': ' + String(error))
+    }
+
     if (!archive.keepArchive) {
       await removeArchiveParts(parts.length > 0 ? parts : [archivePath])
     }
@@ -258,6 +268,68 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
     }
     throw error
   }
+}
+
+/**
+ * Make sure the game's saves are backed up before the extracted folder disappears.
+ * Uses Vnite's own save system when a save path is known (or can be detected), and
+ * falls back to mirroring in-folder saves into the vault.
+ */
+async function ensureSaveSafetyBeforeCompress(gameId: string, extractDir: string): Promise<void> {
+  try {
+    const preserveSaves = await ConfigDBManager.getConfigValue('game.archive.preserveSaves')
+    if (!preserveSaves) return
+
+    const savePaths = await GameDBManager.getGameLocalValue(gameId, 'path.savePaths')
+    const configured = (savePaths ?? []).filter(Boolean)
+    if (configured.length > 0) {
+      // The monitor normally backs up on exit; only act when that backup is stale.
+      const saveList = await GameDBManager.getGameValue(gameId, 'save.saveList')
+      const latest = Math.max(
+        0,
+        ...Object.values(saveList ?? {}).map((entry) => new Date(entry.date).getTime())
+      )
+      if (Date.now() - latest > 5 * 60 * 1000) {
+        await backupGameSave(gameId)
+      }
+      return
+    }
+
+    // No save path configured: detect one, otherwise mirror in-folder saves.
+    const detected = await searchGameSavePaths(gameId)
+    if (detected.length > 0) {
+      await GameDBManager.setGameLocalValue(gameId, 'path.savePaths', detected)
+      await backupGameSave(gameId)
+      return
+    }
+    await backupSaves(gameId, extractDir)
+  } catch (error) {
+    log.warn('[Archive] Save safety check failed for ' + gameId + ': ' + String(error))
+  }
+}
+
+/** Manual "back up saves now" entry point for the archive panel. */
+export async function backupSavesNow(gameId: string): Promise<{ files: number; mode: string }> {
+  const local = await GameDBManager.getGameLocal(gameId)
+  const extractDir = local.archive?.extractDir ?? ''
+  const savePaths = ((await GameDBManager.getGameLocalValue(gameId, 'path.savePaths')) ?? []).filter(
+    Boolean
+  )
+  if (savePaths.length > 0) {
+    await backupGameSave(gameId)
+    return { files: savePaths.length, mode: 'vnite' }
+  }
+  const detected = await searchGameSavePaths(gameId)
+  if (detected.length > 0) {
+    await GameDBManager.setGameLocalValue(gameId, 'path.savePaths', detected)
+    await backupGameSave(gameId)
+    return { files: detected.length, mode: 'detected' }
+  }
+  if (!extractDir || !(await fse.pathExists(extractDir))) {
+    throw new Error('Game is not extracted and no save path was detected')
+  }
+  const result = await backupSaves(gameId, extractDir)
+  return { files: result.files, mode: 'vault' }
 }
 
 /** Re-compress an extracted archive game and remove the extracted folder. */
@@ -286,6 +358,9 @@ export async function compressGame(gameId: string): Promise<string> {
   const tmpArchive = targetArchive + TMP_SUFFIX + '-' + Date.now() + '.' + format
   const parent = path.dirname(extractDir)
   const folderName = path.basename(extractDir)
+
+  // Back up saves before the extracted folder disappears.
+  await ensureSaveSafetyBeforeCompress(gameId, extractDir)
 
   await setState(gameId, 'compressing')
   ipcManager.send('archive:job-progress', { gameId, jobType: 'compress', percent: 0 })
@@ -357,7 +432,11 @@ export async function getArchiveStatus(gameId: string): Promise<ArchiveStatus | 
     archiveBytes: archive?.archiveBytes ?? 0,
     extractedBytes: archive?.extractedBytes ?? 0,
     lastError: archive?.lastError ?? '',
-    extractDirExists: Boolean(archive?.extractDir && fse.existsSync(archive.extractDir))
+    extractDirExists: Boolean(archive?.extractDir && fse.existsSync(archive.extractDir)),
+    duplicates: archive?.duplicates ?? [],
+    saveBackupPath: archive?.saveBackupPath ?? '',
+    saveBackupFiles: archive?.saveBackupFiles ?? 0,
+    saveBackupAt: archive?.saveBackupAt ?? ''
   }
 }
 

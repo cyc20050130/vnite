@@ -258,6 +258,29 @@ export class GameDBManager {
     }
   }
 
+  /** Exact archive-path match, used so sibling archives are not treated as duplicates. */
+  static async findExistingGameIdByGamePath(inputPath: string): Promise<string | null> {
+    if (!inputPath) return null
+    try {
+      const normalized = path.normalize(inputPath).toLowerCase()
+      const games = await this.getAllGamesLocal()
+      for (const game of Object.values(games)) {
+        const gamePath = game.path?.gamePath
+        if (gamePath && path.normalize(gamePath).toLowerCase() === normalized) return game._id
+        // After extraction path.gamePath points at the executable, so also match the
+        // original archive parts (otherwise a re-scan would import the game again).
+        const parts = game.archive?.parts ?? []
+        if (parts.some((part) => part && path.normalize(part).toLowerCase() === normalized)) {
+          return game._id
+        }
+      }
+      return null
+    } catch (error) {
+      log.error('[GameDB] Error finding existing game ID by archive path:', error)
+      return null
+    }
+  }
+
   static async removeGame(gameId: string): Promise<void> {
     try {
       const gameName = (await this.getGame(gameId))?.metadata?.name || 'Unknown Game'

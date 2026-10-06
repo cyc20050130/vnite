@@ -56,6 +56,7 @@ export async function addGameToDB({
   archive,
   version,
   localName,
+  duplicates,
   targetCollection,
   scanRoot
 }: {
@@ -72,6 +73,14 @@ export async function addGameToDB({
   version?: string
   /** Cleaned display name (used by the scanner for archives). */
   localName?: string
+  /** Other archives holding the same game that were not imported. */
+  duplicates?: {
+    path: string
+    version: string
+    translation: string
+    sizeBytes: number
+    reason: string
+  }[]
   targetCollection?: string
   scanRoot?: string
 }): Promise<string> {
@@ -317,6 +326,9 @@ export async function addGameToDB({
     gameLocalDoc.utils.markPath = dirPath ?? ''
     gameLocalDoc.utils.rootPath = inferRootPath(gameLocalDoc.utils.markPath, scanRoot)
     gameLocalDoc.path.gamePath = gamePath ?? ''
+    if (duplicates && duplicates.length > 0) {
+      gameLocalDoc.archive.duplicates = duplicates
+    }
 
     if (version) {
       gameDoc.metadata.version = version

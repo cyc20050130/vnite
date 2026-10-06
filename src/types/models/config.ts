@@ -52,6 +52,12 @@ export interface configDocs {
       keepArchiveAfterExtract: boolean
       autoCompressOnFinished: boolean
       minArchiveSizeMB: number
+      /** Back up saves before re-compressing and restore them after extraction. */
+      preserveSaves: boolean
+      /** Save vault location; empty means <userData>/save-vault. */
+      saveVaultPath: string
+      /** Which archive wins when several contain the same game. */
+      duplicatePriority: 'translation' | 'version'
     }
     scraper: {
       common: {
@@ -426,7 +432,10 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
       compressFormat: 'auto' as const,
       keepArchiveAfterExtract: false,
       autoCompressOnFinished: false,
-      minArchiveSizeMB: 1
+      minArchiveSizeMB: 1,
+      preserveSaves: true,
+      saveVaultPath: '',
+      duplicatePriority: 'translation' as const
     },
     scraper: {
       common: {

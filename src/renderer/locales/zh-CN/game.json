@@ -48,6 +48,16 @@
     "stillFailing": "仍有 {{count}} 个失败"
   },
   "archivePanel": {
+    "saves": "存档",
+    "backupSaves": "备份存档",
+    "saveBackupFiles": "已备份文件",
+    "saveBackupAt": "备份时间",
+    "saveBackupPath": "备份位置",
+    "savesHint": "回压前会自动备份游戏目录内的存档，下次解压后自动还原；已配置存档路径时改用 Vnite 存档系统。",
+    "duplicates": "重复压缩包",
+    "duplicatesHint": "同一游戏的其它压缩包（已按版本与中文质量比较，仅保留最优的一个）。",
+    "unknownVersion": "未知",
+    "backupDone": "存档备份完成",
     "tab": "压缩包",
     "status": "状态",
     "stateValue": {

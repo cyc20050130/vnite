@@ -2,6 +2,7 @@ import { ipcManager } from '~/core/ipc'
 import { listArchive } from './services/archiveList'
 import { addPasswords, getPasswords, removePassword } from './services/passwordVault'
 import {
+  backupSavesNow,
   compressGame,
   ensureExtracted,
   getArchiveStatus,
@@ -20,6 +21,10 @@ export function setupArchiveIPC(): void {
   ipcManager.handle(
     'archive:list',
     async (_event, archivePath: string, password?: string) => listArchive(archivePath, password)
+  )
+
+  ipcManager.handle('archive:backup-saves', async (_event, gameId: string) =>
+    backupSavesNow(gameId)
   )
 
   ipcManager.handle('archive:run-maintenance', async () => runArchiveMaintenance())

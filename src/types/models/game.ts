@@ -175,6 +175,18 @@ export interface gameArchiveLocal {
   lastTransitionAt: string
   archiveBytes: number
   extractedBytes: number
+  /** Other archives that look like the same game (kept but not added). */
+  duplicates: {
+    path: string
+    version: string
+    translation: string
+    sizeBytes: number
+    reason: string
+  }[]
+  /** Mirror of in-folder saves, used to survive re-compression. */
+  saveBackupPath: string
+  saveBackupFiles: number
+  saveBackupAt: string
 }
 
 export interface ArchiveStatusView {
@@ -191,6 +203,16 @@ export interface ArchiveStatusView {
   extractedBytes: number
   lastError: string
   extractDirExists: boolean
+  duplicates: {
+    path: string
+    version: string
+    translation: string
+    sizeBytes: number
+    reason: string
+  }[]
+  saveBackupPath: string
+  saveBackupFiles: number
+  saveBackupAt: string
 }
 
 export interface gameLocalDoc {
@@ -272,7 +294,17 @@ export const DEFAULT_GAME_LOCAL_VALUES: Readonly<gameLocalDoc> = {
     lastError: '',
     lastTransitionAt: '',
     archiveBytes: 0,
-    extractedBytes: 0
+    extractedBytes: 0,
+    duplicates: [] as {
+      path: string
+      version: string
+      translation: string
+      sizeBytes: number
+      reason: string
+    }[],
+    saveBackupPath: '',
+    saveBackupFiles: 0,
+    saveBackupAt: ''
   },
   utils: {
     markPath: '',

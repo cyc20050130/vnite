@@ -77,6 +77,10 @@
     "createScanner": "创建扫描器失败:"
   },
   "globalSettings": {
+    "preserveSaves": "回压前备份存档",
+    "preserveSavesTooltip": "重新压缩前备份存档（优先用 Vnite 存档系统，未配置路径时自动检测或镜像到存档库），下次解压后还原。",
+    "duplicatePriority": "去重优先最新版本",
+    "duplicatePriorityTooltip": "开启时，同一游戏多个压缩包优先保留版本号最高的；关闭时优先保留中文翻译最好的。",
     "nameFromFolder": "译名使用文件夹名",
     "nameFromFolderTooltip": "刮削到数据后，把译名（显示名）设置为该游戏文件夹或压缩包的名字，原名不受影响。",
     "title": "全局扫描器设置",
