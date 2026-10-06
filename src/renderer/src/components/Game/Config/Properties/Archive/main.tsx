@@ -200,14 +200,25 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
     }
   }
 
-  const switchArchive = async (archivePath: string): Promise<void> => {
+  const switchArchive = async (archivePath: string, compressFirst = false): Promise<void> => {
     setBusy(true)
     try {
-      await ipcManager.invoke('archive:duplicates-switch', gameId, archivePath)
+      await ipcManager.invoke('archive:duplicates-switch', gameId, archivePath, compressFirst)
       toast.success(t('archivePanel.duplicateSwitched'))
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      const known = ['GAME_EXTRACTED', 'ARCHIVE_MISSING', 'NOT_ARCHIVE_BACKED']
+      if (message === 'GAME_EXTRACTED') {
+        // Offer the safe path instead of just refusing.
+        toast.error(t('archivePanel.duplicateError.GAME_EXTRACTED'), {
+          action: {
+            label: t('archivePanel.compressThenSwitch'),
+            onClick: () => void switchArchive(archivePath, true)
+          }
+        })
+        setBusy(false)
+        return
+      }
+      const known = ['ARCHIVE_MISSING', 'NOT_ARCHIVE_BACKED']
       toast.error(known.includes(message) ? t('archivePanel.duplicateError.' + message) : message)
     } finally {
       setBusy(false)

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { create } from 'zustand'
 import type { ArchiveBatchJob, ArchiveBatchOp } from '@appTypes/utils'
 import { ipcManager } from '~/app/ipc'
+import { getGameStore } from '~/stores/game/gameStoreFactory'
 
 interface ArchiveBatchState {
   jobs: ArchiveBatchJob[]
@@ -66,6 +67,55 @@ export const useArchiveBatchStore = create<ArchiveBatchState>((set, get) => ({
   setTaskCenterOpen: (open): void => set({ taskCenterOpen: open })
 }))
 
+/**
+ * Single-game operations (extract / compress / backup / version check) do not create a
+ * batch job, so the task center synthesises a one-item job from their progress events.
+ */
+const singleJobsByGame = new Map<string, string>()
+
+function singleJobId(gameId: string): string {
+  return 'single:' + gameId
+}
+
+function upsertSingleJob(
+  gameId: string,
+  op: ArchiveBatchJob['op'],
+  percent: number,
+  finished = false
+): void {
+  const id = singleJobId(gameId)
+  singleJobsByGame.set(gameId, id)
+  const state = useArchiveBatchStore.getState()
+  const previous = state.jobs.find((job) => job.id === id)
+  let name = previous?.items[0]?.name ?? ''
+  if (!name) {
+    try {
+      name = getGameStore(gameId).getState().data?.metadata?.name ?? gameId
+    } catch {
+      name = gameId
+    }
+  }
+  const done = finished || percent >= 100
+  const job: ArchiveBatchJob = {
+    id,
+    op,
+    status: done ? 'completed' : 'running',
+    concurrency: 1,
+    items: [
+      {
+        gameId,
+        name,
+        status: done ? 'success' : 'running',
+        detail: '',
+        progress: Math.max(0, Math.min(100, Math.round(percent)))
+      }
+    ],
+    startedAt: previous?.startedAt ?? new Date().toISOString(),
+    finishedAt: done ? new Date().toISOString() : ''
+  }
+  useArchiveBatchStore.setState({ jobs: upsert(state.jobs, job) })
+}
+
 /** Subscribe to batch events once, from a long-lived component. */
 export function useArchiveBatchEvents(): void {
   useEffect(() => {
@@ -77,10 +127,31 @@ export function useArchiveBatchEvents(): void {
     }
     const offProgress = ipcManager.on('archive:batch-progress', handle)
     const offFinished = ipcManager.on('archive:batch-finished', handle)
+
+    // Single-game progress: only build a task when the game is not part of a batch job.
+    const offSingle = ipcManager.on('archive:job-progress', (_event, payload) => {
+      const state = useArchiveBatchStore.getState()
+      const inBatch = state.jobs.some(
+        (job) =>
+          job.status === 'running' &&
+          job.items.some((item) => item.gameId === payload.gameId && item.status === 'running')
+      )
+      if (inBatch) return
+      upsertSingleJob(payload.gameId, payload.jobType as ArchiveBatchJob['op'], payload.percent)
+    })
+    const offState = ipcManager.on('archive:state-changed', (_event, payload) => {
+      if (payload.to === 'extracted' || payload.to === 'archived') {
+        const id = singleJobsByGame.get(payload.gameId)
+        if (id) upsertSingleJob(payload.gameId, 'extract', 100, true)
+      }
+    })
+
     void useArchiveBatchStore.getState().refresh()
     return () => {
       offProgress()
       offFinished()
+      offSingle()
+      offState()
     }
   }, [])
 }

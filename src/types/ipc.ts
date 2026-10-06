@@ -309,7 +309,11 @@ type MainIpcEvents =
         gameId: string,
         paths?: string[]
       ) => { trashed: number; skipped: number }
-      'archive:duplicates-switch': (gameId: string, archivePath: string) => void
+      'archive:duplicates-switch': (
+        gameId: string,
+        archivePath: string,
+        compressFirst?: boolean
+      ) => void
       'archive:open-with-external': (gameId: string) => void
       'plugin:list-menu-contributions': (
         context: 'game' | 'batch'
@@ -487,7 +491,11 @@ type RendererIpcEvents = {
   'game:launch-failed': [gameId: string]
 
   'archive:job-progress': [
-    { gameId: string; jobType: 'extract' | 'compress'; percent: number }
+    {
+      gameId: string
+      jobType: 'extract' | 'compress' | 'check-version' | 'backup-saves'
+      percent: number
+    }
   ]
   'archive:state-changed': [{ gameId: string; from: string; to: string; error?: string }]
   'archive:batch-progress': [job: ArchiveBatchJob]

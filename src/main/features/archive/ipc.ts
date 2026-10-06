@@ -72,7 +72,8 @@ export function setupArchiveIPC(): void {
 
   ipcManager.handle(
     'archive:duplicates-switch',
-    async (_event, gameId: string, archivePath: string) => switchGameArchive(gameId, archivePath)
+    async (_event, gameId: string, archivePath: string, compressFirst?: boolean) =>
+      switchGameArchive(gameId, archivePath, { compressFirst: Boolean(compressFirst) })
   )
 
   ipcManager.handle('archive:run-maintenance', async () => runArchiveMaintenance())

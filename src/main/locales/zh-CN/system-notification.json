@@ -1,5 +1,7 @@
 {
   "screenshotSaved": "截图已保存",
   "unableToDetectProcess": "未检测到游戏进程",
-  "unableToDetectProcessDetail": "由于未检测到游戏进程，Vnite 无法自动统计游戏时间。这可能是由于 Vnite 权限不足所导致，请尝试以管理员权限重新启动 Vntie"
+  "unableToDetectProcessDetail": "由于未检测到游戏进程，Vnite 无法自动统计游戏时间。这可能是由于 Vnite 权限不足所导致，请尝试以管理员权限重新启动 Vntie",
+  "archiveBatchTitle": "压缩包任务完成",
+  "archiveBatchBody": "成功 {success} · 失败 {failed} · 跳过 {skipped}"
 }

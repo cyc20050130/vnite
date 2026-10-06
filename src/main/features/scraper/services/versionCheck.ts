@@ -1,4 +1,5 @@
 import log from 'electron-log/main'
+import { ipcManager } from '~/core/ipc'
 import { GameDBManager } from '~/core/database'
 import { scraperManager } from '~/features/scraper'
 import type { VersionCheckResult } from '@appTypes/utils'
@@ -39,7 +40,9 @@ export async function checkGameVersion(gameId: string): Promise<VersionCheckResu
     throw new Error('NO_DATA_SOURCE')
   }
 
+  ipcManager.send('archive:job-progress', { gameId, jobType: 'check-version', percent: 10 })
   const info = await scraperManager.getGameVersion(dataSource, { type: 'id', value: dataSourceId })
+  ipcManager.send('archive:job-progress', { gameId, jobType: 'check-version', percent: 70 })
   if (!info) throw new Error('NO_VERSION_INFO')
 
   const localVersion = metadata?.version ?? ''
@@ -59,6 +62,7 @@ export async function checkGameVersion(gameId: string): Promise<VersionCheckResu
     checkedAt
   })
 
+  ipcManager.send('archive:job-progress', { gameId, jobType: 'check-version', percent: 100 })
   log.info('[VersionCheck] ' + gameId + ' local=' + localVersion + ' remote=' + (info.version ?? '') + ' -> ' + status)
   return {
     status,

@@ -369,6 +369,7 @@ export async function checkIncompleteArchive(gameId: string): Promise<{
 
 /** Manual "back up saves now" entry point for the archive panel. */
 export async function backupSavesNow(gameId: string): Promise<{ files: number; mode: string }> {
+  ipcManager.send('archive:job-progress', { gameId, jobType: 'backup-saves', percent: 20 })
   const local = await GameDBManager.getGameLocal(gameId)
   const extractDir = local.archive?.extractDir ?? ''
   const savePaths = ((await GameDBManager.getGameLocalValue(gameId, 'path.savePaths')) ?? []).filter(
@@ -376,18 +377,22 @@ export async function backupSavesNow(gameId: string): Promise<{ files: number; m
   )
   if (savePaths.length > 0) {
     await backupGameSave(gameId)
+    ipcManager.send('archive:job-progress', { gameId, jobType: 'backup-saves', percent: 100 })
     return { files: savePaths.length, mode: 'vnite' }
   }
   const detected = await searchGameSavePaths(gameId)
   if (detected.length > 0) {
     await GameDBManager.setGameLocalValue(gameId, 'path.savePaths', detected)
     await backupGameSave(gameId)
+    ipcManager.send('archive:job-progress', { gameId, jobType: 'backup-saves', percent: 100 })
     return { files: detected.length, mode: 'detected' }
   }
   if (!extractDir || !(await fse.pathExists(extractDir))) {
     throw new Error('Game is not extracted and no save path was detected')
   }
+  ipcManager.send('archive:job-progress', { gameId, jobType: 'backup-saves', percent: 80 })
   const result = await backupSaves(gameId, extractDir)
+  ipcManager.send('archive:job-progress', { gameId, jobType: 'backup-saves', percent: 100 })
   return { files: result.files, mode: 'vault' }
 }
 

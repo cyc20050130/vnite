@@ -49,7 +49,13 @@
       "renamed": "Name updated",
       "unchanged": "Already correct"
     },
-    "concurrencyLabel": "Parallel"
+    "concurrencyLabel": "Parallel",
+    "onFinishLabel": "When done",
+    "onFinish": {
+      "none": "Nothing",
+      "notify": "Notify",
+      "close": "Close"
+    }
   },
   "version": {
     "title": "Version",
@@ -217,7 +223,8 @@
       "disabled": "The rename option is turned off",
       "noGame": "Game not found",
       "unknown": "Nothing to rename"
-    }
+    },
+    "compressThenSwitch": "Re-compress first"
   },
   "librarybar": {
     "home": "Home",

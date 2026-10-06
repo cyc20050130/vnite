@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { ArchiveBatchItem, ArchiveBatchJob, ArchiveBatchOp } from '@appTypes/utils'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import React, { useEffect } from 'react'
 import { useConfigState } from '~/hooks'
 import { useArchiveBatchStore } from '~/stores/archiveBatchStore'
 import { archiveErrorMessage } from '~/utils/archiveError'
@@ -52,6 +53,15 @@ export function ArchiveBatchDialog(): React.JSX.Element | null {
   const { t } = useTranslation('game')
   const { jobs, activeJobId, dialogOpen, closeDialog, cancel, retryFailed } = useArchiveBatchStore()
   const [batchConcurrency, setBatchConcurrency] = useConfigState('game.archive.batchConcurrency')
+  const [batchOnFinish, setBatchOnFinish] = useConfigState('game.archive.batchOnFinish')
+  const jobStatus = jobs.find((entry) => entry.id === activeJobId)?.status
+
+  // "Close when done" is applied here so the setting survives a dialog re-open.
+  useEffect(() => {
+    if (batchOnFinish === 'close' && jobStatus && jobStatus !== 'running' && dialogOpen) {
+      closeDialog()
+    }
+  }, [batchOnFinish, jobStatus, dialogOpen, closeDialog])
 
   if (!dialogOpen) return null
   const job: ArchiveBatchJob | undefined = jobs.find((entry) => entry.id === activeJobId) ?? jobs[0]
@@ -95,6 +105,20 @@ export function ArchiveBatchDialog(): React.JSX.Element | null {
               })}
             </span>
             <div className="flex items-center gap-2 text-muted-foreground">
+              <span>{t('archiveBatch.onFinishLabel')}</span>
+              <Select
+                value={batchOnFinish ?? 'notify'}
+                onValueChange={(value) => void setBatchOnFinish(value as never)}
+              >
+                <SelectTrigger className={cn('h-7 w-[108px] text-xs')}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t('archiveBatch.onFinish.none')}</SelectItem>
+                  <SelectItem value="notify">{t('archiveBatch.onFinish.notify')}</SelectItem>
+                  <SelectItem value="close">{t('archiveBatch.onFinish.close')}</SelectItem>
+                </SelectContent>
+              </Select>
               <span>{t('archiveBatch.concurrencyLabel')}</span>
               <Select
                 value={String(batchConcurrency?.[job.op] ?? job.concurrency)}

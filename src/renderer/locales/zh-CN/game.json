@@ -49,7 +49,13 @@
       "renamed": "已更新译名",
       "unchanged": "无需修改"
     },
-    "concurrencyLabel": "并发"
+    "concurrencyLabel": "并发",
+    "onFinishLabel": "完成后",
+    "onFinish": {
+      "none": "不操作",
+      "notify": "通知",
+      "close": "关闭窗口"
+    }
   },
   "version": {
     "title": "版本",
@@ -217,7 +223,8 @@
       "disabled": "未开启「按译名重命名文件夹」",
       "noGame": "找不到该游戏",
       "unknown": "无需重命名"
-    }
+    },
+    "compressThenSwitch": "先回压再切换"
   },
   "librarybar": {
     "home": "主页",

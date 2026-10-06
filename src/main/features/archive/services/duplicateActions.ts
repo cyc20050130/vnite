@@ -55,11 +55,21 @@ export async function trashDuplicateArchives(
  * Make another archive the game's active one. The previously active archive is kept
  * (moved into the duplicate list) so nothing is lost.
  */
-export async function switchGameArchive(gameId: string, archivePath: string): Promise<void> {
+export async function switchGameArchive(
+  gameId: string,
+  archivePath: string,
+  options: { compressFirst?: boolean } = {}
+): Promise<void> {
   const local = await GameDBManager.getGameLocal(gameId)
   const archive = local.archive
   if (!archive || !archive.enabled) throw new Error('NOT_ARCHIVE_BACKED')
-  if (archive.state === 'extracted') throw new Error('GAME_EXTRACTED')
+  if (archive.state === 'extracted') {
+    // Switching while extracted is only safe after packing the current folder back up,
+    // otherwise the extracted files would look orphaned.
+    if (!options.compressFirst) throw new Error('GAME_EXTRACTED')
+    const { compressGame } = await import('./archiveState')
+    await compressGame(gameId)
+  }
   if (!(await fse.pathExists(archivePath))) throw new Error('ARCHIVE_MISSING')
 
   const duplicates = archive.duplicates ?? []

@@ -64,6 +64,8 @@ export interface configDocs {
       duplicatePriority: 'translation' | 'version'
       /** Ask before re-compressing (it deletes the extracted folder). */
       confirmCompress: boolean
+      /** What to do when a batch job finishes. */
+      batchOnFinish: 'none' | 'notify' | 'close'
       /** Parallelism per batch operation. */
       batchConcurrency: {
         extract: number
@@ -457,6 +459,7 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
       externalToolPath: '',
       duplicatePriority: 'translation' as const,
       confirmCompress: true,
+      batchOnFinish: 'notify' as const,
       batchConcurrency: {
         extract: 2,
         compress: 1,

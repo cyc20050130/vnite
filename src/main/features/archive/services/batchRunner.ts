@@ -1,4 +1,6 @@
 import log from 'electron-log/main'
+import i18next from 'i18next'
+import * as native from 'vnite-native'
 import { ipcManager } from '~/core/ipc'
 import { ConfigDBManager, GameDBManager } from '~/core/database'
 import { generateUUID } from '@appUtils'
@@ -176,6 +178,23 @@ async function runPool(job: ArchiveBatchJob): Promise<void> {
   job.finishedAt = new Date().toISOString()
   emitProgress(job, true)
   ipcManager.send('archive:batch-finished', snapshot(job))
+
+  // Optional completion notification (the renderer may be closed by then).
+  try {
+    const onFinish = await ConfigDBManager.getConfigValue('game.archive.batchOnFinish')
+    if (onFinish === 'notify') {
+      const success = job.items.filter((item) => item.status === 'success').length
+      const failed = job.items.filter((item) => item.status === 'failed').length
+      const skipped = job.items.filter((item) => item.status === 'skipped').length
+      native.sendSystemNotification(
+        'vnite',
+        i18next.t('system-notification:archiveBatchTitle'),
+        i18next.t('system-notification:archiveBatchBody', { success, failed, skipped })
+      )
+    }
+  } catch (error) {
+    log.warn('[Archive] Batch notification failed: ' + String(error))
+  }
   log.info(
     '[Archive] Batch ' +
       job.op +
