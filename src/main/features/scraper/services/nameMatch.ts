@@ -1,4 +1,4 @@
-import { jaroWinkler } from '~/utils'
+import { jaroWinkler } from '@appUtils'
 
 /**
  * Name helpers shared by provider matching. Chinese and Japanese share hanzi, so the
