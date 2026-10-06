@@ -1,8 +1,25 @@
 import { ipcManager } from '~/core/ipc'
 import { pluginService } from './services'
 import { PluginInstallOptions, PluginSearchOptions } from '@appTypes/plugin'
+import { invokeMenu, listMenus, type PluginMenuContext } from './contributions'
 
 export function setupPluginIPC(): void {
+  ipcManager.handle('plugin:list-menu-contributions', async (_, context: PluginMenuContext) => {
+    return listMenus(context)
+  })
+
+  ipcManager.handle(
+    'plugin:invoke-menu-contribution',
+    async (_, id: string, payload: unknown) => {
+      try {
+        await invokeMenu(id, payload)
+        return { success: true }
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : String(error) }
+      }
+    }
+  )
+
   ipcManager.handle('plugin:get-all-plugins', async () => {
     return pluginService.getSerializablePlugins()
   })

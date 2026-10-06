@@ -4,6 +4,7 @@ import AdmZip from 'adm-zip'
 import { net } from 'electron'
 import { VnitePluginAPI } from '../api'
 import { PluginDBManager } from '~/core/database'
+import { clearPluginContributions } from '../contributions'
 import { eventBus } from '~/core/events'
 import log from 'electron-log/main'
 import type {
@@ -181,6 +182,9 @@ export class PluginManager {
       // Load plugin module
       const pluginModule = await this.loadPluginModule(pluginInfo)
 
+      // Fresh registration on every activation.
+      clearPluginContributions(pluginId)
+
       // Create API instance
       const api = new VnitePluginAPI(pluginId)
 
@@ -225,6 +229,18 @@ export class PluginManager {
         const api = new VnitePluginAPI(pluginId)
         await pluginModule.deactivate(api)
       }
+
+      // Drop the plugin's UI contributions and engines.
+      clearPluginContributions(pluginId)
+      void import('~/features/archive/services/engineRegistry').then(
+        ({ listArchiveEngines, unregisterArchiveEngine }) => {
+          for (const engine of listArchiveEngines()) {
+            if (!engine.builtin && engine.id.startsWith(pluginId)) {
+              unregisterArchiveEngine(engine.id)
+            }
+          }
+        }
+      )
 
       // Clear module cache
       this.loadedModules.delete(pluginId)

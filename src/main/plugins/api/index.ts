@@ -2,6 +2,7 @@ import { ConfigDBManager, GameDBManager, PluginDBManager } from '~/core/database
 import { eventBus } from '~/core/events'
 import { ipcManager } from '~/core/ipc'
 import { scraperManager } from '~/features/scraper/services/ScraperManager'
+import { registerAction, registerMenu } from '../contributions'
 
 export class VnitePluginAPI {
   public readonly pluginId: string
@@ -14,6 +15,16 @@ export class VnitePluginAPI {
   public readonly eventBus = eventBus
   public readonly ipc = ipcManager
   public readonly scraper = scraperManager
+
+  /** UI contribution points (menus + their action handlers). */
+  public readonly contributes = {
+    menu: (item: { id: string; label: string; context?: 'game' | 'batch' }): void => {
+      registerMenu(this.pluginId, item)
+    },
+    action: (id: string, handler: (payload: unknown) => Promise<void> | void): void => {
+      registerAction(this.pluginId, id, handler)
+    }
+  }
 
   /**
    * Archive capabilities for plugins (lazy imports keep the module graph acyclic and
@@ -53,6 +64,21 @@ export class VnitePluginAPI {
     switchArchive: async (gameId: string, archivePath: string) => {
       const { switchGameArchive } = await import('~/features/archive/services/duplicateActions')
       await switchGameArchive(gameId, archivePath)
+    },
+    registerEngine: (engine: unknown) => {
+      // Kept synchronous so plugins can register during activate().
+      void import('~/features/archive/services/engineRegistry').then(({ registerArchiveEngine }) => {
+        registerArchiveEngine(engine as never)
+      })
+    },
+    unregisterEngine: (engineId: string) => {
+      void import('~/features/archive/services/engineRegistry').then(({ unregisterArchiveEngine }) => {
+        unregisterArchiveEngine(engineId)
+      })
+    },
+    listEngines: async () => {
+      const { listArchiveEngines } = await import('~/features/archive/services/engineRegistry')
+      return listArchiveEngines()
     }
   }
 

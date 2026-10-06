@@ -1,4 +1,5 @@
 import type { ArchiveStatusView } from '@appTypes/models'
+import type { ArchiveEngine } from '~/features/archive/services/engineRegistry'
 
 export interface IPluginArchiveAPI {
   getStatus(gameId: string): Promise<ArchiveStatusView | null>
@@ -11,6 +12,17 @@ export interface IPluginArchiveAPI {
   >
   trashDuplicates(gameId: string, paths?: string[]): Promise<{ trashed: number; skipped: number }>
   switchArchive(gameId: string, archivePath: string): Promise<void>
+  /** Register a custom extraction/compression engine (higher priority than built-ins). */
+  registerEngine(engine: ArchiveEngine): void
+  unregisterEngine(engineId: string): void
+  listEngines(): ArchiveEngine[]
+}
+
+export interface IPluginContributesAPI {
+  /** Add an entry to a context menu ('game' for a single game, 'batch' for multi-select). */
+  menu(item: { id: string; label: string; context?: 'game' | 'batch' }): void
+  /** Handle clicks of the menu entry with the same id. */
+  action(id: string, handler: (payload: unknown) => Promise<void> | void): void
 }
 
 import { ConfigDBManager, GameDBManager } from '~/core/database'
@@ -30,6 +42,7 @@ export interface IPluginAPI {
   readonly ipc: IPCManager
   readonly scraper: ScraperManager
   readonly archive: IPluginArchiveAPI
+  readonly contributes: IPluginContributesAPI
 }
 
 export interface IPlugin {

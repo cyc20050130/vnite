@@ -7,6 +7,8 @@ import {
   ContextMenuSubTrigger
 } from '~/components/ui/context-menu'
 import type { ArchiveBatchOp } from '@appTypes/utils'
+import { toast } from 'sonner'
+import { ipcManager } from '~/app/ipc'
 import { useArchiveBatchStore } from '~/stores/archiveBatchStore'
 import { cn } from '~/utils'
 import { CollectionMenu } from './CollectionMenu'
@@ -35,6 +37,21 @@ export function BatchGameNavCM({
   const startBatch = useArchiveBatchStore((state) => state.start)
   const onBatch = (op: ArchiveBatchOp): void => {
     void startBatch(op, gameIds)
+  }
+  const [pluginMenus, setPluginMenus] = useState<
+    { id: string; pluginId: string; label: string }[]
+  >([])
+
+  useEffect(() => {
+    ipcManager
+      .invoke('plugin:list-menu-contributions', 'batch')
+      .then((items) => setPluginMenus(items ?? []))
+      .catch(() => setPluginMenus([]))
+  }, [gameIds.length])
+
+  const invokePluginMenu = async (id: string): Promise<void> => {
+    const result = await ipcManager.invoke('plugin:invoke-menu-contribution', id, { gameIds })
+    if (!result.success) toast.error(result.error ?? 'PLUGIN_ACTION_FAILED')
   }
 
   useEffect(() => {
@@ -97,6 +114,16 @@ export function BatchGameNavCM({
           </ContextMenuItem>
         </ContextMenuSubContent>
       </ContextMenuSub>
+      {pluginMenus.length > 0 ? (
+        <>
+          <ContextMenuSeparator />
+          {pluginMenus.map((item) => (
+            <ContextMenuItem key={item.id} onClick={() => void invokePluginMenu(item.id)}>
+              <div>{item.label}</div>
+            </ContextMenuItem>
+          ))}
+        </>
+      ) : null}
       <ContextMenuSeparator />
       {/* Delete Game Alert */}
       <DeleteGameAlert gameIds={gameIds}>

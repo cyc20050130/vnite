@@ -19,6 +19,7 @@ import { resolvePasswordForArchive } from './passwordVault'
 import { backupSaves, restoreSaves } from './saveVault'
 import { emitArchiveProgress } from './batchProgress'
 import { classifyArchiveError } from './errorCodes'
+import { pickArchiveEngine } from './engineRegistry'
 import { backupGameSave, searchGameSavePaths } from '~/features/game'
 
 const TMP_SUFFIX = '.vnite-tmp'
@@ -162,6 +163,9 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
     'other'
   // Full 7-Zip reads RAR (multi-volume included); otherwise fall back to WASM unrar.
   const useUnrar = format === 'rar' && !hasFull7z()
+  // A plugin-registered engine with a higher priority takes over the built-ins.
+  const customEngine = pickArchiveEngine(format)
+  const useCustomEngine = Boolean(customEngine && !customEngine.builtin)
   if (!useUnrar && !resolve7zPath()) {
     throw new Error('7-Zip CLI not found; cannot extract')
   }
@@ -210,9 +214,28 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
   await fse.ensureDir(path.dirname(extractDir))
   await setState(gameId, 'extracting')
   ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent: 0 })
+  eventBus.emit('archive:before-extract', { gameId, archivePath, parts, format }, { source: 'archive' })
 
   try {
-    if (useUnrar) {
+    if (useCustomEngine && customEngine) {
+      const engineResult = await customEngine.extract(archivePath, tmpDir, {
+        password: password ?? undefined,
+        timeoutMs: LONG_TIMEOUT,
+        onProgress: (percent) => {
+          if (percent >= 0) {
+            ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent })
+            emitArchiveProgress(gameId, percent)
+          }
+        }
+      })
+      if (engineResult.code !== 0) {
+        const output = (engineResult.stderr || '') + (engineResult.stdout || '')
+        if (isPasswordError(output)) {
+          await setState(gameId, 'passwordRequired', 'password required')
+        }
+        throw new Error('Engine ' + customEngine.id + ' failed: ' + output.slice(-300))
+      }
+    } else if (useUnrar) {
       await extractRarArchive(archivePath, tmpDir, {
         password: password ?? undefined,
         onProgress: (percent) => {
@@ -250,12 +273,23 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
     await GameDBManager.setGameLocalValue(gameId, 'archive.archiveBytes', 0)
 
     // Put back any saves mirrored before the last compression.
+    let restoredSaves = 0
     try {
       const preserveSaves = await ConfigDBManager.getConfigValue('game.archive.preserveSaves')
-      if (preserveSaves) await restoreSaves(gameId, extractDir)
+      if (preserveSaves) restoredSaves = await restoreSaves(gameId, extractDir)
     } catch (error) {
       log.warn('[Archive] Save restore failed for ' + gameId + ': ' + String(error))
     }
+    eventBus.emit(
+      'archive:after-extract',
+      {
+        gameId,
+        extractDir,
+        entrypoint: path.relative(extractDir, exe).split(path.sep).join('/'),
+        restoredSaves
+      },
+      { source: 'archive' }
+    )
 
     if (!archive.keepArchive) {
       await removeArchiveParts(parts.length > 0 ? parts : [archivePath])
@@ -370,17 +404,23 @@ export async function compressGame(gameId: string): Promise<string> {
 
   await setState(gameId, 'compressing')
   ipcManager.send('archive:job-progress', { gameId, jobType: 'compress', percent: 0 })
+  eventBus.emit('archive:before-compress', { gameId, extractDir, format }, { source: 'archive' })
 
   try {
-    const result = await compressFolder(parent, folderName, tmpArchive, {
+    const compressEngine = pickArchiveEngine(format)
+    const compressOptions = {
       format,
       level: 9,
       timeoutMs: LONG_TIMEOUT,
-      onProgress: (percent) => {
+      onProgress: (percent: number) => {
         ipcManager.send('archive:job-progress', { gameId, jobType: 'compress', percent })
         emitArchiveProgress(gameId, percent)
       }
-    })
+    }
+    const result =
+      compressEngine && !compressEngine.builtin && compressEngine.compress
+        ? await compressEngine.compress(parent, folderName, tmpArchive, compressOptions)
+        : await compressFolder(parent, folderName, tmpArchive, compressOptions)
     if (result.code !== 0) {
       throw new Error('7-Zip compress failed: ' + (result.stderr || result.stdout).slice(-300))
     }
@@ -412,6 +452,11 @@ export async function compressGame(gameId: string): Promise<string> {
     eventBus.emit(
       'archive:state-changed',
       { gameId, from: 'extracted', to: 'archived' },
+      { source: 'archive' }
+    )
+    eventBus.emit(
+      'archive:after-compress',
+      { gameId, archivePath: targetArchive, bytes: size },
       { source: 'archive' }
     )
     ipcManager.send('archive:job-progress', { gameId, jobType: 'compress', percent: 100 })

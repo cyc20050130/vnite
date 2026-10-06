@@ -305,6 +305,13 @@ type MainIpcEvents =
       ) => { trashed: number; skipped: number }
       'archive:duplicates-switch': (gameId: string, archivePath: string) => void
       'archive:open-with-external': (gameId: string) => void
+      'plugin:list-menu-contributions': (
+        context: 'game' | 'batch'
+      ) => { id: string; pluginId: string; label: string; context: 'game' | 'batch' }[]
+      'plugin:invoke-menu-contribution': (
+        id: string,
+        payload: unknown
+      ) => { success: boolean; error?: string }
       'scraper:check-game-version': (gameId: string) => VersionCheckResult
       'scraper:check-game-exists': (dataSource: string, identifier: ScraperIdentifier) => boolean
       'scraper:get-game-version': (
