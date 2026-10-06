@@ -34,6 +34,7 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
   const [preserveSaves, setPreserveSaves] = useConfigState('game.archive.preserveSaves')
   const [duplicatePriority, setDuplicatePriority] = useConfigState('game.archive.duplicatePriority')
   const [extractRoot, setExtractRoot] = useConfigState('game.archive.defaultExtractRoot')
+  const [externalToolPath, setExternalToolPath] = useConfigState('game.archive.externalToolPath')
   const [autoCompress, setAutoCompress] = useConfigState('game.archive.autoCompressOnFinished')
   const { globalSettings, intervalMinutes, updateGlobalSettings, updateIntervalMinutes } =
     useGameScannerStore()
@@ -219,6 +220,25 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
             onChange={(event) => void setExtractRoot(event.target.value)}
             className={cn('text-sm')}
           />
+
+          {/* External archiver used by "open with" */}
+          <div className={cn('whitespace-nowrap select-none justify-self-start')}>
+            {t('globalSettings.externalTool')}
+          </div>
+          <Tooltip>
+            <TooltipTrigger className={cn('p-0 max-w-none m-0 w-full')}>
+              <Input
+                type="text"
+                value={externalToolPath ?? ''}
+                placeholder={t('globalSettings.externalToolPlaceholder')}
+                onChange={(event) => void setExternalToolPath(event.target.value)}
+                className={cn('text-sm')}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start">
+              <div className={cn('text-xs')}>{t('globalSettings.externalToolTooltip')}</div>
+            </TooltipContent>
+          </Tooltip>
 
           {/* Auto compress on finished */}
           <div className={cn('whitespace-nowrap select-none justify-self-start')}>

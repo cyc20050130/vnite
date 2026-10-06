@@ -304,6 +304,7 @@ type MainIpcEvents =
         paths?: string[]
       ) => { trashed: number; skipped: number }
       'archive:duplicates-switch': (gameId: string, archivePath: string) => void
+      'archive:open-with-external': (gameId: string) => void
       'scraper:check-game-version': (gameId: string) => VersionCheckResult
       'scraper:check-game-exists': (dataSource: string, identifier: ScraperIdentifier) => boolean
       'scraper:get-game-version': (

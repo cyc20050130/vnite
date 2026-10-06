@@ -15,6 +15,47 @@ export class VnitePluginAPI {
   public readonly ipc = ipcManager
   public readonly scraper = scraperManager
 
+  /**
+   * Archive capabilities for plugins (lazy imports keep the module graph acyclic and
+   * let plugins run even when the archive feature is disabled).
+   */
+  public readonly archive = {
+    getStatus: async (gameId: string) => {
+      const { getArchiveStatus } = await import('~/features/archive/services/archiveState')
+      return await getArchiveStatus(gameId)
+    },
+    listArchive: async (archivePath: string, password?: string) => {
+      const { listArchive } = await import('~/features/archive/services/archiveList')
+      return await listArchive(archivePath, password)
+    },
+    extract: async (gameId: string): Promise<string> => {
+      const { ensureExtracted } = await import('~/features/archive/services/archiveState')
+      return await ensureExtracted(gameId)
+    },
+    compress: async (gameId: string): Promise<string> => {
+      const { compressGame } = await import('~/features/archive/services/archiveState')
+      return await compressGame(gameId)
+    },
+    backupSaves: async (gameId: string) => {
+      const { backupSavesNow } = await import('~/features/archive/services/archiveState')
+      return await backupSavesNow(gameId)
+    },
+    listDuplicates: async (gameId: string) => {
+      const local = await GameDBManager.getGameLocal(gameId)
+      return local.archive?.duplicates ?? []
+    },
+    trashDuplicates: async (gameId: string, paths?: string[]) => {
+      const { trashDuplicateArchives } = await import(
+        '~/features/archive/services/duplicateActions'
+      )
+      return await trashDuplicateArchives(gameId, paths)
+    },
+    switchArchive: async (gameId: string, archivePath: string) => {
+      const { switchGameArchive } = await import('~/features/archive/services/duplicateActions')
+      await switchGameArchive(gameId, archivePath)
+    }
+  }
+
   constructor(pluginId: string) {
     this.pluginId = pluginId
     this.PluginDB = {

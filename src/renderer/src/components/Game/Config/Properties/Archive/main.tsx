@@ -55,6 +55,7 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
   const [newPassword, setNewPassword] = useState('')
   const [keepArchive, setKeepArchive] = useGameLocalState(gameId, 'archive.keepArchive')
   const [confirmCompress, setConfirmCompress] = useConfigState('game.archive.confirmCompress')
+  const [externalToolPath] = useConfigState('game.archive.externalToolPath')
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [dontAskAgain, setDontAskAgain] = useState(false)
 
@@ -128,6 +129,35 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
       setBusy(false)
       setProgress(null)
       await refresh()
+    }
+  }
+
+  const targetPath =
+    status && status.state === 'extracted' && status.extractDir
+      ? status.extractDir
+      : status?.archivePath || status?.extractDir || ''
+
+  const openLocation = async (): Promise<void> => {
+    if (!targetPath) return
+    try {
+      await ipcManager.invoke('system:open-path-in-explorer', targetPath)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  const copyPath = async (): Promise<void> => {
+    if (!targetPath) return
+    await navigator.clipboard.writeText(targetPath)
+    toast.success(t('archivePanel.pathCopied'))
+  }
+
+  const openWithExternal = async (): Promise<void> => {
+    try {
+      await ipcManager.invoke('archive:open-with-external', gameId)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      toast.error(archiveErrorMessage(message, t))
     }
   }
 
@@ -207,6 +237,25 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
             </Button>
             <Button size="sm" onClick={() => void run('extract')} disabled={busy || !status?.enabled}>
               {t('archivePanel.extract')}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void openLocation()}
+              disabled={!targetPath}
+            >
+              {t('archivePanel.openLocation')}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => void copyPath()} disabled={!targetPath}>
+              {t('archivePanel.copyPath')}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void openWithExternal()}
+              disabled={!externalToolPath}
+            >
+              {t('archivePanel.openWithExternal')}
             </Button>
             <Button
               size="sm"

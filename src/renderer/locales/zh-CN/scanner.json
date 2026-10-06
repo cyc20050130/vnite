@@ -103,7 +103,10 @@
     "extractRoot": "统一解压根目录",
     "extractRootPlaceholder": "留空则解压到压缩包同级目录",
     "autoCompress": "完结自动回压",
-    "autoCompressTooltip": "游戏被标记为\"已游玩\"后，自动重新压缩并删除解压目录"
+    "autoCompressTooltip": "游戏被标记为\"已游玩\"后，自动重新压缩并删除解压目录",
+    "externalTool": "外部压缩工具",
+    "externalToolPlaceholder": "例如 Bandizip 或 WinRAR 的 exe 路径",
+    "externalToolTooltip": "配置后在游戏属性页可以用它打开当前压缩包（Bandizip / WinRAR / 7-Zip 文件管理器均可）。"
   },
   "dataSources": {
     "steam": "Steam",

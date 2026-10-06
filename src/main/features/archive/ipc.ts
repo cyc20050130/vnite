@@ -1,4 +1,7 @@
+import { spawn } from 'child_process'
+import fse from 'fs-extra'
 import { ipcManager } from '~/core/ipc'
+import { ConfigDBManager, GameDBManager } from '~/core/database'
 import { listArchive } from './services/archiveList'
 import { addPasswords, getPasswords, removePassword } from './services/passwordVault'
 import {
@@ -45,6 +48,18 @@ export function setupArchiveIPC(): void {
   )
 
   ipcManager.handle('archive:batch-jobs', async () => listArchiveBatchJobs())
+
+  // Launch the user's preferred external archiver with the game's archive.
+  ipcManager.handle('archive:open-with-external', async (_event, gameId: string) => {
+    const configured = await ConfigDBManager.getConfigValue('game.archive.externalToolPath')
+    if (!configured || configured.trim().length === 0) throw new Error('NO_EXTERNAL_TOOL')
+    const local = await GameDBManager.getGameLocal(gameId)
+    const parts = local.archive?.parts ?? []
+    const target =
+      parts.find((part) => part && fse.existsSync(part)) ?? local.path?.gamePath ?? ''
+    if (!target) throw new Error('ARCHIVE_MISSING')
+    spawn(configured.trim(), [target], { detached: true, stdio: 'ignore' }).unref()
+  })
 
   ipcManager.handle('archive:duplicates-trash', async (_event, gameId: string, paths?: string[]) =>
     trashDuplicateArchives(gameId, paths)

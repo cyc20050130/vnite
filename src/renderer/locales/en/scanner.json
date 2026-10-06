@@ -103,7 +103,10 @@
     "extractRoot": "Unified extract root",
     "extractRootPlaceholder": "Leave empty to extract next to the archive",
     "autoCompress": "Auto re-compress when finished",
-    "autoCompressTooltip": "When a game is marked as finished, re-compress it and delete the extracted folder"
+    "autoCompressTooltip": "When a game is marked as finished, re-compress it and delete the extracted folder",
+    "externalTool": "External archiver",
+    "externalToolPlaceholder": "Path to Bandizip or WinRAR exe",
+    "externalToolTooltip": "Once set, the archive panel can open the current archive with it (Bandizip / WinRAR / 7-Zip FM all work)."
   },
   "dataSources": {
     "steam": "Steam",

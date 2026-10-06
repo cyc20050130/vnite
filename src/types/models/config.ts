@@ -56,6 +56,8 @@ export interface configDocs {
       preserveSaves: boolean
       /** Save vault location; empty means <userData>/save-vault. */
       saveVaultPath: string
+      /** Optional external archiver used by "open with" (Bandizip / WinRAR / 7zFM). */
+      externalToolPath: string
       /** Which archive wins when several contain the same game. */
       duplicatePriority: 'translation' | 'version'
       /** Ask before re-compressing (it deletes the extracted folder). */
@@ -447,6 +449,7 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
       minArchiveSizeMB: 1,
       preserveSaves: true,
       saveVaultPath: '',
+      externalToolPath: '',
       duplicatePriority: 'translation' as const,
       confirmCompress: true,
       batchConcurrency: {

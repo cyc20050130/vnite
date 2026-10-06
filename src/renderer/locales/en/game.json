@@ -169,8 +169,13 @@
       "NO_EXECUTABLE": "No executable found inside the archive",
       "ARCHIVE_MISSING": "That archive no longer exists",
       "GAME_EXTRACTED": "Re-compress this game before doing that",
-      "NOT_ARCHIVE_BACKED": "This game is not archive-backed"
-    }
+      "NOT_ARCHIVE_BACKED": "This game is not archive-backed",
+      "NO_EXTERNAL_TOOL": "No external archiver configured (Scanner → Global settings)"
+    },
+    "openLocation": "Open location",
+    "copyPath": "Copy path",
+    "openWithExternal": "Open externally",
+    "pathCopied": "Path copied"
   },
   "librarybar": {
     "home": "Home",

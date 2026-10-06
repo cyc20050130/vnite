@@ -1,3 +1,18 @@
+import type { ArchiveStatusView } from '@appTypes/models'
+
+export interface IPluginArchiveAPI {
+  getStatus(gameId: string): Promise<ArchiveStatusView | null>
+  listArchive(archivePath: string, password?: string): Promise<unknown>
+  extract(gameId: string): Promise<string>
+  compress(gameId: string): Promise<string>
+  backupSaves(gameId: string): Promise<{ files: number; mode: string }>
+  listDuplicates(gameId: string): Promise<
+    { path: string; version: string; translation: string; sizeBytes: number; reason: string }[]
+  >
+  trashDuplicates(gameId: string, paths?: string[]): Promise<{ trashed: number; skipped: number }>
+  switchArchive(gameId: string, archivePath: string): Promise<void>
+}
+
 import { ConfigDBManager, GameDBManager } from '~/core/database'
 import { EventBus } from '~/core/events'
 import { IPCManager } from '~/core/ipc'
@@ -14,6 +29,7 @@ export interface IPluginAPI {
   readonly eventBus: EventBus
   readonly ipc: IPCManager
   readonly scraper: ScraperManager
+  readonly archive: IPluginArchiveAPI
 }
 
 export interface IPlugin {

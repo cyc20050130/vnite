@@ -12,7 +12,8 @@ const RULES: { re: RegExp; code: ArchiveErrorCode }[] = [
   { re: /no executable found inside the archive/i, code: 'NO_EXECUTABLE' },
   { re: /^archive_missing$|archive file not found/i, code: 'ARCHIVE_MISSING' },
   { re: /^game_extracted$/, code: 'GAME_EXTRACTED' },
-  { re: /^not_archive_backed$/, code: 'NOT_ARCHIVE_BACKED' }
+  { re: /^not_archive_backed$/, code: 'NOT_ARCHIVE_BACKED' },
+  { re: /^no_external_tool$/, code: 'NO_EXTERNAL_TOOL' }
 ]
 
 /** Turn a thrown error or CLI output into a stable code (falls back to the raw text). */

@@ -46,7 +46,8 @@ export const ARCHIVE_ERROR_CODES = [
   'NO_EXECUTABLE',
   'ARCHIVE_MISSING',
   'GAME_EXTRACTED',
-  'NOT_ARCHIVE_BACKED'
+  'NOT_ARCHIVE_BACKED',
+  'NO_EXTERNAL_TOOL'
 ] as const
 
 export type ArchiveErrorCode = (typeof ARCHIVE_ERROR_CODES)[number]
