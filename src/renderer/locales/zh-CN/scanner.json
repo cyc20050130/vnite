@@ -61,7 +61,14 @@
         "edit": "编辑",
         "delete": "删除"
       }
-    }
+    },
+    "selected": "已选 {count} 个",
+    "selectAll": "全选",
+    "clearSelection": "取消选择",
+    "batchScan": "批量扫描",
+    "batchDelete": "批量删除",
+    "batchDeleteTitle": "删除 {count} 个扫描器？",
+    "batchDeleteBody": "只删除扫描器配置，已入库的游戏不会受影响。"
   },
   "notifications": {
     "fixAttempt": "尝试获取游戏中",

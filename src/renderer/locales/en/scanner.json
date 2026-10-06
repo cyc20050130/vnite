@@ -61,7 +61,14 @@
         "edit": "Edit",
         "delete": "Delete"
       }
-    }
+    },
+    "selected": "{count} selected",
+    "selectAll": "Select all",
+    "clearSelection": "Clear",
+    "batchScan": "Scan selected",
+    "batchDelete": "Delete selected",
+    "batchDeleteTitle": "Delete {count} scanner(s)?",
+    "batchDeleteBody": "Only the scanner configuration is removed; imported games are untouched."
   },
   "notifications": {
     "fixAttempt": "Attempting to fetch game",

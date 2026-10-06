@@ -11,6 +11,16 @@ import {
 } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '~/components/ui/alert-dialog'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
@@ -27,8 +37,10 @@ export const GameScannerManager: React.FC = () => {
   const { t } = useTranslation('scanner')
 
   const [isShowingGlobalSettings, setShowingGlobalSettings] = useState(false)
+  const [selectedScannerIds, setSelectedScannerIds] = useState<string[]>([])
+  const [showBatchDelete, setShowBatchDelete] = useState(false)
 
-  const [scannerConfig] = useConfigLocalState('game.scanner')
+  const [scannerConfig, setScannerConfig] = useConfigLocalState('game.scanner')
 
   const {
     scanProgress,
@@ -39,7 +51,8 @@ export const GameScannerManager: React.FC = () => {
     showFailedDialog,
     scanAll,
     stopScan,
-    isStopping
+    isStopping,
+    scanScanner
   } = useGameScannerStore()
 
   // Initialize listeners and get initial state
@@ -96,7 +109,8 @@ export const GameScannerManager: React.FC = () => {
 
   // Scanner count and global settings
   const scannerList = scannerConfig?.list || {}
-  const scannerCount = Object.keys(scannerList).length
+  const scannerIds = Object.keys(scannerList)
+  const scannerCount = scannerIds.length
   const globalInterval = scannerConfig?.interval || 0
 
   return (
@@ -216,14 +230,51 @@ export const GameScannerManager: React.FC = () => {
               {/* Scanners list title bar */}
               <div className="flex items-center justify-between p-4 border-b bg-muted/[calc(var(--glass-opacity)/2)] rounded-t-lg">
                 <div className="text-sm font-medium">{t('list.title')}</div>
-                <Button
-                  size="sm"
-                  onClick={handleAddScanner}
-                  disabled={scanProgress.status === 'scanning' || isStopping}
-                >
-                  <FolderPlus className="w-4 h-4 mr-2" />
-                  {t('actions.addDirectory')}
-                </Button>
+                <div className="flex items-center gap-2">
+                  {selectedScannerIds.length > 0 ? (
+                    <>
+                      <span className="text-xs text-muted-foreground">
+                        {t('list.selected', { count: selectedScannerIds.length })}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedScannerIds([...scannerIds])}
+                      >
+                        {t('list.selectAll')}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setSelectedScannerIds([])}>
+                        {t('list.clearSelection')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={scanProgress.status === 'scanning' || isStopping}
+                        onClick={() => {
+                          for (const id of selectedScannerIds) scanScanner(id)
+                        }}
+                      >
+                        {t('list.batchScan')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="delete"
+                        disabled={scanProgress.status === 'scanning' || isStopping}
+                        onClick={() => setShowBatchDelete(true)}
+                      >
+                        {t('list.batchDelete')}
+                      </Button>
+                    </>
+                  ) : null}
+                  <Button
+                    size="sm"
+                    onClick={handleAddScanner}
+                    disabled={scanProgress.status === 'scanning' || isStopping}
+                  >
+                    <FolderPlus className="w-4 h-4 mr-2" />
+                    {t('actions.addDirectory')}
+                  </Button>
+                </div>
               </div>
 
               {/* Game scanner directories list */}
@@ -236,6 +287,12 @@ export const GameScannerManager: React.FC = () => {
                         scanner={scanner}
                         scannerId={scannerId}
                         onEditClick={() => setEditingScanner({ id: scannerId, isNew: false })}
+                        selected={selectedScannerIds.includes(scannerId)}
+                        onToggle={(checked) =>
+                          setSelectedScannerIds((prev) =>
+                            checked ? [...new Set([...prev, scannerId])] : prev.filter((id) => id !== scannerId)
+                          )
+                        }
                       />
                     ))}
                   </div>
@@ -275,6 +332,33 @@ export const GameScannerManager: React.FC = () => {
             isOpen={isShowingFailedDialog}
             onClose={() => showFailedDialog(false)}
           />
+
+          <AlertDialog open={showBatchDelete} onOpenChange={setShowBatchDelete}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {t('list.batchDeleteTitle', { count: selectedScannerIds.length })}
+                </AlertDialogTitle>
+                <AlertDialogDescription>{t('list.batchDeleteBody')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    if (scannerConfig?.list) {
+                      const updatedList = { ...scannerConfig.list }
+                      for (const id of selectedScannerIds) delete updatedList[id]
+                      void setScannerConfig({ ...scannerConfig, list: updatedList })
+                    }
+                    setSelectedScannerIds([])
+                    setShowBatchDelete(false)
+                  }}
+                >
+                  {t('list.batchDelete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </ScrollArea>
     </div>

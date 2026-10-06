@@ -11,6 +11,7 @@ import {
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip'
+import { Checkbox } from '~/components/ui/checkbox'
 import { Folder, FolderOpen, Pencil, PlayCircle, Trash2 } from 'lucide-react'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -28,12 +29,16 @@ interface GameScannerListItemProps {
   }
   scannerId: string
   onEditClick: () => void
+  selected?: boolean
+  onToggle?: (selected: boolean) => void
 }
 
 export const GameScannerListItem: React.FC<GameScannerListItemProps> = ({
   scanner,
   scannerId,
-  onEditClick
+  onEditClick,
+  selected,
+  onToggle
 }) => {
   const { t } = useTranslation('scanner')
   const [scannerConfig, setScannerConfig] = useConfigLocalState('game.scanner')
@@ -103,6 +108,14 @@ export const GameScannerListItem: React.FC<GameScannerListItemProps> = ({
 
   return (
     <div className="relative flex items-center justify-between p-4 overflow-hidden transition-colors">
+      {onToggle ? (
+        <div className="mr-3 flex items-center">
+          <Checkbox
+            checked={Boolean(selected)}
+            onCheckedChange={(value) => onToggle(Boolean(value))}
+          />
+        </div>
+      ) : null}
       {/* Semi-transparent progress bar - only shown when scanning */}
       {isScanning && (
         <div
