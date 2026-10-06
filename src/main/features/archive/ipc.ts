@@ -8,6 +8,8 @@ import {
   backupSavesNow,
   checkIncompleteArchive,
   compressGame,
+  normalizeGameName,
+  suggestGameName,
   ensureExtracted,
   getArchiveStatus,
   runArchiveMaintenance
@@ -46,6 +48,14 @@ export function setupArchiveIPC(): void {
 
   ipcManager.handle('archive:check-incomplete', async (_event, gameId: string) =>
     checkIncompleteArchive(gameId)
+  )
+
+  ipcManager.handle('archive:suggest-name', async (_event, gameId: string) =>
+    suggestGameName(gameId)
+  )
+
+  ipcManager.handle('archive:normalize-name', async (_event, gameId: string, force?: boolean) =>
+    normalizeGameName(gameId, Boolean(force))
   )
 
   ipcManager.handle('archive:batch-cancel', async (_event, jobId: string) =>

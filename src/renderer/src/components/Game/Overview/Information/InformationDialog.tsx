@@ -7,6 +7,7 @@ import { DateTimeInput } from '@ui/date-input'
 import { Dialog, DialogContent } from '@ui/dialog'
 import { Input } from '@ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@ui/tooltip'
+import { ipcManager } from '~/app/ipc'
 import { useGameState } from '~/hooks'
 import { getGameStore } from '~/stores/game/gameStoreFactory'
 import { cn } from '~/utils'
@@ -68,6 +69,22 @@ export function InformationDialog({
   }
 
   async function applyFolderName(): Promise<void> {
+    // The main process parses the archive / folder name: it strips ordering indexes,
+    // release tags and prefers a Chinese translation found in brackets.
+    try {
+      const suggestion = await ipcManager.invoke('archive:suggest-name', gameId)
+      const name = (
+        suggestion.suggested ||
+        localName ||
+        basenameOf(gamePath) ||
+        basenameOf(markPath)
+      ).trim()
+      if (!name) return
+      await getGameStore(gameId).getState().setValue('metadata.name', name)
+      return
+    } catch {
+      // fall through to the plain folder name
+    }
     const folderName = (localName || basenameOf(gamePath) || basenameOf(markPath)).trim()
     if (!folderName) return
     await getGameStore(gameId).getState().setValue('metadata.name', folderName)

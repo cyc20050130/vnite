@@ -13,7 +13,8 @@ const OP_KEY: Record<ArchiveBatchJob['op'], string> = {
   compress: 'compress',
   'backup-saves': 'backupSaves',
   'check-version': 'checkVersion',
-  'resolve-duplicates': 'resolveDuplicates'
+  'resolve-duplicates': 'resolveDuplicates',
+  'normalize-names': 'normalizeNames'
 }
 
 const STATUS_KEY: Record<ArchiveBatchJob['status'], string> = {

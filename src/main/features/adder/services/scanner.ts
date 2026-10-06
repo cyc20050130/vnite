@@ -17,7 +17,7 @@ import {
   isPathWithinRoot
 } from '~/utils'
 import { classifyArchive } from '~/features/archive/services/archiveDetect'
-import { guessVersion } from '~/features/archive/services/titleResolver'
+import { guessVersion, parseArchiveName } from '~/features/archive/services/titleResolver'
 import { planArchiveGroups, type DuplicateInfo } from '~/features/archive/services/duplicateResolver'
 import { detectIncompleteArchive } from '~/features/archive/services/incompleteDetect'
 import { listArchive } from '~/features/archive/services/archiveList'
@@ -543,48 +543,70 @@ export class GameScanner extends EventEmitter {
           }
         }
 
-        let searchName = folder.name
+        // Split the raw name into the original title and a Chinese translation.
+        let rawName = folder.name
         if (entryKind === 'archive' && gamePath) {
           const info = classifyArchive(path.basename(gamePath))
-          searchName = info ? info.base : path.basename(gamePath)
+          rawName = info ? info.base : path.basename(gamePath)
         } else {
           const rootPath = inferRootPath(folder.dirPath)
           if (rootPath && rootPath !== folder.dirPath) {
-            searchName = path.basename(rootPath)
+            rawName = path.basename(rootPath)
           }
         }
-        if (normalizeFolderName) {
-          searchName = this.normalizeFolderName(searchName)
-        }
+        const parsedName = parseArchiveName(rawName)
+        const searchName = normalizeFolderName
+          ? this.normalizeFolderName(parsedName.mainTitle)
+          : parsedName.mainTitle
+        // 译名：优先使用括号/下划线里的中文，否则退回清洗后的原标题。
+        const displayName = parsedName.translation || parsedName.mainTitle
+        const fallbackSearch =
+          parsedName.translation && parsedName.translation !== searchName
+            ? parsedName.translation
+            : ''
 
         // Prefer multi-source aggregate search when enabled; otherwise single source.
         // The archive path is forwarded so providers such as DLsite can extract an RJ/VJ id.
         const aggregateEnabled = await ConfigDBManager.getConfigValue(
           'game.scraper.common.aggregateSearch'
         )
-        let match: { id: string; name: string; source?: string } | null = null
-        if (aggregateEnabled) {
-          const aggregateProviders = await ConfigDBManager.getConfigValue(
-            'game.scraper.common.aggregateProviders'
-          )
-          const aggregated = await scraperManager.aggregateSearchGames(searchName, {
-            gamePath: gamePath ?? folder.dirPath,
-            providers: aggregateProviders
-          })
-          if (aggregated.items.length > 0) {
-            const top = aggregated.items[0]
-            match = { id: top.id, name: top.name, source: top.source }
+        const aggregateProviders = aggregateEnabled
+          ? await ConfigDBManager.getConfigValue('game.scraper.common.aggregateProviders')
+          : []
+
+        const searchOnce = async (
+          query: string
+        ): Promise<{ id: string; name: string; source?: string } | null> => {
+          if (!query) return null
+          if (aggregateEnabled) {
+            const aggregated = await scraperManager.aggregateSearchGames(query, {
+              gamePath: gamePath ?? folder.dirPath,
+              providers: aggregateProviders
+            })
+            if (aggregated.items.length > 0) {
+              const top = aggregated.items[0]
+              return { id: top.id, name: top.name, source: top.source }
+            }
+            return null
           }
-        } else {
           const gameResults = await scraperManager.searchGames(
             dataSource,
-            searchName,
+            query,
             gamePath ?? folder.dirPath
           )
           if (gameResults && gameResults.length > 0) {
             const first = gameResults[0]
-            match = { id: first.id, name: first.name, source: dataSource }
+            return { id: first.id, name: first.name, source: dataSource }
           }
+          return null
+        }
+
+        // Search the original title first; retry with the Chinese translation only if
+        // nothing matched (e.g. a Chinese-only provider entry).
+        let match = await searchOnce(searchName)
+        if (!match && fallbackSearch) {
+          log.info('[Scanner] Retrying search with the translated name: ' + fallbackSearch)
+          match = await searchOnce(fallbackSearch)
         }
 
         if (match) {
@@ -659,8 +681,8 @@ export class GameScanner extends EventEmitter {
             sourceType: entryKind === 'archive' ? 'archive' : 'folder',
             archive: archiveInfo,
             version,
-            // Archives use the cleaned scanner title so the localized name stays readable.
-            localName: entryKind === 'archive' ? searchName : undefined,
+            // 译名：优先使用解析出的中文译名，否则用清洗后的标题。
+            localName: displayName,
             duplicates: entryKind === 'archive' ? duplicateInfos : undefined,
             upscaleEnabled: upscaleScale > 0,
             upscaleOptionsOverride: upscaleScale > 0 ? { scale: upscaleScale } : undefined,

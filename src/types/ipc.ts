@@ -300,6 +300,16 @@ type MainIpcEvents =
       'archive:check-incomplete': (
         gameId: string
       ) => { incomplete: boolean; reason: string; detail: string }
+      'archive:suggest-name': (gameId: string) => {
+        suggested: string
+        mainTitle: string
+        translation: string
+        source: string
+      }
+      'archive:normalize-name': (
+        gameId: string,
+        force?: boolean
+      ) => { changed: boolean; name: string }
       'archive:batch-cancel': (jobId: string) => boolean
       'archive:batch-jobs': () => ArchiveBatchJob[]
       'archive:duplicates-trash': (

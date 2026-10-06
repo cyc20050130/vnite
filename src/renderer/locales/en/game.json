@@ -5,7 +5,8 @@
       "compress": "Re-compress all",
       "backupSaves": "Back up saves",
       "checkVersion": "Check versions",
-      "resolveDuplicates": "Resolve duplicate archives"
+      "resolveDuplicates": "Resolve duplicate archives",
+      "normalizeNames": "Recompute names"
     },
     "status": {
       "pending": "Pending",
@@ -37,7 +38,9 @@
       "outdated": "Update available",
       "unknown": "Not comparable",
       "backupFiles": "{count} file(s) backed up",
-      "trashed": "{count} moved to the recycle bin"
+      "trashed": "{count} moved to the recycle bin",
+      "renamed": "Name updated",
+      "unchanged": "Already correct"
     },
     "concurrencyLabel": "Parallel"
   },
@@ -192,7 +195,10 @@
         "zeroSize": "empty file",
         "locked": "locked by the downloader"
       }
-    }
+    },
+    "normalizeName": "Recompute name",
+    "nameApplied": "Name updated to {name}",
+    "nameUnchanged": "Name already correct"
   },
   "librarybar": {
     "home": "Home",
@@ -930,7 +936,8 @@
         "compress": "Re-compress all",
         "backupSaves": "Back up saves",
         "checkVersion": "Check versions",
-        "cleanDuplicates": "Resolve duplicates"
+        "cleanDuplicates": "Resolve duplicates",
+        "normalizeNames": "Recompute names"
       },
       "updateMetadata": "Update Metadata",
       "delete": "Batch Delete"

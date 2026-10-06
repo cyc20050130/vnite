@@ -4,6 +4,7 @@ export type ArchiveBatchOp =
   | 'backup-saves'
   | 'check-version'
   | 'resolve-duplicates'
+  | 'normalize-names'
 
 export type ArchiveBatchItemStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped'
 

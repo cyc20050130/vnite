@@ -5,7 +5,8 @@
       "compress": "批量回压",
       "backupSaves": "批量备份存档",
       "checkVersion": "批量检查版本",
-      "resolveDuplicates": "批量处理重复压缩包"
+      "resolveDuplicates": "批量处理重复压缩包",
+      "normalizeNames": "批量重算译名"
     },
     "status": {
       "pending": "等待",
@@ -37,7 +38,9 @@
       "outdated": "有更新",
       "unknown": "无法比较",
       "backupFiles": "已备份 {count} 个文件",
-      "trashed": "已移入回收站 {count} 个"
+      "trashed": "已移入回收站 {count} 个",
+      "renamed": "已更新译名",
+      "unchanged": "无需修改"
     },
     "concurrencyLabel": "并发"
   },
@@ -192,7 +195,10 @@
         "zeroSize": "空文件",
         "locked": "文件被下载器占用"
       }
-    }
+    },
+    "normalizeName": "重算译名",
+    "nameApplied": "译名已更新为 {name}",
+    "nameUnchanged": "译名无需修改"
   },
   "librarybar": {
     "home": "主页",
@@ -930,7 +936,8 @@
         "compress": "批量回压",
         "backupSaves": "批量备份存档",
         "checkVersion": "批量检查版本",
-        "cleanDuplicates": "处理重复压缩包"
+        "cleanDuplicates": "处理重复压缩包",
+        "normalizeNames": "重算译名"
       },
       "updateMetadata": "更新元数据",
       "delete": "删除"

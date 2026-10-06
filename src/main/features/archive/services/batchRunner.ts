@@ -6,6 +6,7 @@ import type { ArchiveBatchItem, ArchiveBatchJob, ArchiveBatchOp } from '@appType
 import { backupSavesNow, compressGame, ensureExtracted } from './archiveState'
 import { onArchiveProgress } from './batchProgress'
 import { trashDuplicateArchives } from './duplicateActions'
+import { normalizeGameName } from './archiveState'
 import { checkGameVersion } from '~/features/scraper/services/versionCheck'
 
 const DEFAULT_CONCURRENCY: Record<ArchiveBatchOp, number> = {
@@ -13,7 +14,8 @@ const DEFAULT_CONCURRENCY: Record<ArchiveBatchOp, number> = {
   compress: 1,
   'backup-saves': 2,
   'check-version': 3,
-  'resolve-duplicates': 1
+  'resolve-duplicates': 1,
+  'normalize-names': 4
 }
 
 const jobs = new Map<string, ArchiveBatchJob>()
@@ -81,6 +83,8 @@ async function shouldSkip(op: ArchiveBatchOp, gameId: string): Promise<SkipDecis
         }
       }
       return { skip: false }
+    case 'normalize-names':
+      return { skip: false }
     case 'resolve-duplicates':
       if (!enabled) return { skip: true, reason: 'notArchiveBacked' }
       if ((local?.archive?.duplicates ?? []).length === 0) {
@@ -114,6 +118,11 @@ async function runItem(op: ArchiveBatchOp, item: ArchiveBatchItem): Promise<stri
       {
         const result = await trashDuplicateArchives(item.gameId)
         return String(result.trashed)
+      }
+    case 'normalize-names':
+      {
+        const result = await normalizeGameName(item.gameId)
+        return result.changed ? 'renamed' : 'unchanged'
       }
     default:
       return ''

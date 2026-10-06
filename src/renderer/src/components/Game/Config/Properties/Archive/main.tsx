@@ -288,6 +288,14 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
             </Button>
             <Button
               size="sm"
+              variant="outline"
+              onClick={() => void applySuggestedName()}
+              disabled={busy}
+            >
+              {t('archivePanel.normalizeName')}
+            </Button>
+            <Button
+              size="sm"
               variant="secondary"
               onClick={() => (confirmCompress === false ? void run('compress') : setConfirmOpen(true))}
               disabled={busy || status?.state !== 'extracted'}

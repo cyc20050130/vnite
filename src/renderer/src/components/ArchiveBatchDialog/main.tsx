@@ -16,7 +16,8 @@ const OP_LABEL: Record<ArchiveBatchOp, string> = {
   compress: 'compress',
   'backup-saves': 'backupSaves',
   'check-version': 'checkVersion',
-  'resolve-duplicates': 'resolveDuplicates'
+  'resolve-duplicates': 'resolveDuplicates',
+  'normalize-names': 'normalizeNames'
 }
 
 /** Detail values that come from the backend as enum-ish codes. */
@@ -30,7 +31,9 @@ const DETAIL_KEYS: Record<string, string> = {
   NO_VERSION_INFO: 'skipReason.noVersion',
   latest: 'result.latest',
   outdated: 'result.outdated',
-  unknown: 'result.unknown'
+  unknown: 'result.unknown',
+  renamed: 'result.renamed',
+  unchanged: 'result.unchanged'
 }
 
 function statusVariant(status: ArchiveBatchItem['status']): 'secondary' | 'destructive' | 'outline' {

@@ -109,6 +109,9 @@ export function BatchGameNavCM({
             <div>{t('batchEditor.contextMenu.archive.checkVersion')}</div>
           </ContextMenuItem>
           <ContextMenuSeparator />
+          <ContextMenuItem onClick={() => onBatch('normalize-names')}>
+            <div>{t('batchEditor.contextMenu.archive.normalizeNames')}</div>
+          </ContextMenuItem>
           <ContextMenuItem onClick={() => onBatch('resolve-duplicates')}>
             <div>{t('batchEditor.contextMenu.archive.cleanDuplicates')}</div>
           </ContextMenuItem>
