@@ -10,7 +10,7 @@ interface ArchiveBatchState {
   refresh: () => Promise<void>
   start: (op: ArchiveBatchOp, gameIds: string[], concurrency?: number) => Promise<void>
   cancel: (jobId: string) => Promise<void>
-  retryFailed: (jobId: string) => Promise<void>
+  retryFailed: (jobId: string, concurrency?: number) => Promise<void>
   openDialog: (jobId?: string) => void
   closeDialog: () => void
 }
@@ -39,12 +39,17 @@ export const useArchiveBatchStore = create<ArchiveBatchState>((set, get) => ({
     await ipcManager.invoke('archive:batch-cancel', jobId)
   },
 
-  retryFailed: async (jobId): Promise<void> => {
+  retryFailed: async (jobId, concurrency): Promise<void> => {
     const job = get().jobs.find((entry) => entry.id === jobId)
     if (!job) return
     const failed = job.items.filter((item) => item.status === 'failed').map((item) => item.gameId)
     if (failed.length === 0) return
-    const next = await ipcManager.invoke('archive:batch-run', job.op, failed, job.concurrency)
+    const next = await ipcManager.invoke(
+      'archive:batch-run',
+      job.op,
+      failed,
+      concurrency ?? job.concurrency
+    )
     set({ jobs: upsert(get().jobs, next), activeJobId: next.id })
   },
 

@@ -18,6 +18,7 @@ import { extractRarArchive, isRarPasswordError } from './rarEngine'
 import { resolvePasswordForArchive } from './passwordVault'
 import { backupSaves, restoreSaves } from './saveVault'
 import { emitArchiveProgress } from './batchProgress'
+import { classifyArchiveError } from './errorCodes'
 import { backupGameSave, searchGameSavePaths } from '~/features/game'
 
 const TMP_SUFFIX = '.vnite-tmp'
@@ -265,12 +266,13 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
   } catch (error) {
     await fse.remove(tmpDir).catch(() => undefined)
     const message = error instanceof Error ? error.message : String(error)
+    const code = classifyArchiveError(error)
     if (isRarPasswordError(error) || /password/i.test(message)) {
-      await setState(gameId, 'passwordRequired', message)
+      await setState(gameId, 'passwordRequired', code + ' | ' + message.slice(0, 300))
     } else {
-      await setState(gameId, 'error', message)
+      await setState(gameId, 'error', code + ' | ' + message.slice(0, 300))
     }
-    throw error
+    throw new Error(code)
   }
 }
 
@@ -416,8 +418,10 @@ export async function compressGame(gameId: string): Promise<string> {
     return targetArchive
   } catch (error) {
     await fse.remove(tmpArchive).catch(() => undefined)
-    await setState(gameId, 'error', error instanceof Error ? error.message : String(error))
-    throw error
+    const raw = error instanceof Error ? error.message : String(error)
+    const code = classifyArchiveError(error)
+    await setState(gameId, 'error', code + ' | ' + raw.slice(0, 300))
+    throw new Error(code)
   }
 }
 

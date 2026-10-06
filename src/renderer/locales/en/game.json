@@ -37,7 +37,8 @@
       "unknown": "Not comparable",
       "backupFiles": "{count} file(s) backed up",
       "trashed": "{count} moved to the recycle bin"
-    }
+    },
+    "concurrencyLabel": "Parallel"
   },
   "version": {
     "title": "Version",
@@ -150,6 +151,24 @@
     "duplicateError": {
       "GAME_EXTRACTED": "Re-compress this game before switching archives",
       "ARCHIVE_MISSING": "That archive no longer exists",
+      "NOT_ARCHIVE_BACKED": "This game is not archive-backed"
+    },
+    "termHint": "Re-compress = pack the extracted folder back into an archive; saves are backed up first.",
+    "emptyTitle": "Not an archive game",
+    "emptyBody": "This game was imported from a folder, so there is nothing to manage here. Enable \"Scan archives\" in the scanner and add the matching directory to import archives automatically.",
+    "goScanner": "Open scanner settings",
+    "errors": {
+      "PASSWORD_REQUIRED": "Password required (use the panel in the corner)",
+      "PASSWORD_WRONG": "Wrong password",
+      "DISK_FULL": "Not enough disk space",
+      "CORRUPT_ARCHIVE": "Archive is damaged or incomplete (missing volume?)",
+      "FILE_IN_USE": "File is in use; close the game or the other program and retry",
+      "PERMISSION_DENIED": "Permission denied for this file",
+      "ARCHIVE_NOT_FOUND": "Archive file not found",
+      "SEVEN_ZIP_MISSING": "7-Zip not found; cannot extract or compress",
+      "NO_EXECUTABLE": "No executable found inside the archive",
+      "ARCHIVE_MISSING": "That archive no longer exists",
+      "GAME_EXTRACTED": "Re-compress this game before doing that",
       "NOT_ARCHIVE_BACKED": "This game is not archive-backed"
     }
   },

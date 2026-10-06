@@ -60,6 +60,14 @@ export interface configDocs {
       duplicatePriority: 'translation' | 'version'
       /** Ask before re-compressing (it deletes the extracted folder). */
       confirmCompress: boolean
+      /** Parallelism per batch operation. */
+      batchConcurrency: {
+        extract: number
+        compress: number
+        'backup-saves': number
+        'check-version': number
+        'resolve-duplicates': number
+      }
     }
     scraper: {
       common: {
@@ -438,7 +446,14 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
       preserveSaves: true,
       saveVaultPath: '',
       duplicatePriority: 'translation' as const,
-      confirmCompress: true
+      confirmCompress: true,
+      batchConcurrency: {
+        extract: 2,
+        compress: 1,
+        'backup-saves': 2,
+        'check-version': 3,
+        'resolve-duplicates': 1
+      }
     },
     scraper: {
       common: {

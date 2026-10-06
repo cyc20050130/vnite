@@ -2,10 +2,13 @@ import { Badge } from '@ui/badge'
 import { Button } from '@ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@ui/dialog'
 import { Progress } from '@ui/progress'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@ui/select'
 import type { ArchiveBatchItem, ArchiveBatchJob, ArchiveBatchOp } from '@appTypes/utils'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import { useConfigState } from '~/hooks'
 import { useArchiveBatchStore } from '~/stores/archiveBatchStore'
+import { archiveErrorMessage } from '~/utils/archiveError'
 import { cn } from '~/utils'
 
 const OP_LABEL: Record<ArchiveBatchOp, string> = {
@@ -39,6 +42,7 @@ function statusVariant(status: ArchiveBatchItem['status']): 'secondary' | 'destr
 export function ArchiveBatchDialog(): React.JSX.Element | null {
   const { t } = useTranslation('game')
   const { jobs, activeJobId, dialogOpen, closeDialog, cancel, retryFailed } = useArchiveBatchStore()
+  const [batchConcurrency, setBatchConcurrency] = useConfigState('game.archive.batchConcurrency')
 
   if (!dialogOpen) return null
   const job: ArchiveBatchJob | undefined = jobs.find((entry) => entry.id === activeJobId) ?? jobs[0]
@@ -54,6 +58,8 @@ export function ArchiveBatchDialog(): React.JSX.Element | null {
     if (!item.detail) return ''
     const key = DETAIL_KEYS[item.detail]
     if (key) return t('archiveBatch.' + key)
+    const readable = archiveErrorMessage(item.detail, t)
+    if (readable !== item.detail) return readable
     if (/^\d+$/.test(item.detail)) {
       return job.op === 'resolve-duplicates'
         ? t('archiveBatch.result.trashed', { count: item.detail })
@@ -79,9 +85,30 @@ export function ArchiveBatchDialog(): React.JSX.Element | null {
                 skipped
               })}
             </span>
-            <span className="text-muted-foreground">
-              {t('archiveBatch.concurrency', { count: job.concurrency })}
-            </span>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span>{t('archiveBatch.concurrencyLabel')}</span>
+              <Select
+                value={String(batchConcurrency?.[job.op] ?? job.concurrency)}
+                onValueChange={(value) =>
+                  void setBatchConcurrency({
+                    ...(batchConcurrency ?? {}),
+                    [job.op]: Number(value)
+                  } as never)
+                }
+                disabled={job.status === 'running'}
+              >
+                <SelectTrigger className={cn('h-7 w-[76px] text-xs')}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4].map((count) => (
+                    <SelectItem key={count} value={String(count)}>
+                      {count}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <Progress value={job.status === 'running' ? overall : 100} />
 
@@ -117,7 +144,13 @@ export function ArchiveBatchDialog(): React.JSX.Element | null {
             </Button>
           ) : null}
           {failed > 0 && job.status !== 'running' ? (
-            <Button variant="secondary" size="sm" onClick={() => void retryFailed(job.id)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                void retryFailed(job.id, batchConcurrency?.[job.op] ?? job.concurrency)
+              }
+            >
               {t('archiveBatch.actions.retryFailed')}
             </Button>
           ) : null}

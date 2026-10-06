@@ -1,6 +1,6 @@
 import log from 'electron-log/main'
 import { ipcManager } from '~/core/ipc'
-import { GameDBManager } from '~/core/database'
+import { ConfigDBManager, GameDBManager } from '~/core/database'
 import { generateUUID } from '@appUtils'
 import type { ArchiveBatchItem, ArchiveBatchJob, ArchiveBatchOp } from '@appTypes/utils'
 import { backupSavesNow, compressGame, ensureExtracted } from './archiveState'
@@ -174,16 +174,31 @@ async function runPool(job: ArchiveBatchJob): Promise<void> {
   )
 }
 
+async function resolveConfiguredConcurrency(op: ArchiveBatchOp): Promise<number> {
+  try {
+    const configured = await ConfigDBManager.getConfigValue('game.archive.batchConcurrency')
+    const value = configured?.[op]
+    if (typeof value === 'number' && value > 0) return value
+  } catch {
+    // ignore config read failures
+  }
+  return DEFAULT_CONCURRENCY[op] ?? 1
+}
+
 export async function runArchiveBatch(
   op: ArchiveBatchOp,
   gameIds: string[],
   concurrency?: number
 ): Promise<ArchiveBatchJob> {
+  const requested =
+    typeof concurrency === 'number' && concurrency > 0
+      ? concurrency
+      : await resolveConfiguredConcurrency(op)
   const job: ArchiveBatchJob = {
     id: generateUUID(),
     op,
     status: 'running',
-    concurrency: Math.max(1, Math.min(8, concurrency ?? DEFAULT_CONCURRENCY[op] ?? 1)),
+    concurrency: Math.max(1, Math.min(8, requested)),
     items: [],
     startedAt: new Date().toISOString(),
     finishedAt: ''

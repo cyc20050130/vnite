@@ -37,7 +37,8 @@
       "unknown": "无法比较",
       "backupFiles": "已备份 {count} 个文件",
       "trashed": "已移入回收站 {count} 个"
-    }
+    },
+    "concurrencyLabel": "并发"
   },
   "version": {
     "title": "版本",
@@ -150,6 +151,24 @@
     "duplicateError": {
       "GAME_EXTRACTED": "请先回压当前游戏，再切换压缩包",
       "ARCHIVE_MISSING": "该压缩包已不存在",
+      "NOT_ARCHIVE_BACKED": "该游戏不是压缩包游戏"
+    },
+    "termHint": "回压 = 把已解压的目录重新压缩成包；存档会在回压前自动备份。",
+    "emptyTitle": "这不是压缩包游戏",
+    "emptyBody": "该游戏是通过文件夹入库的，没有压缩包可管理。若想让压缩包自动入库，请在扫描器里开启「扫描压缩包」并添加对应的扫描目录。",
+    "goScanner": "去扫描器设置",
+    "errors": {
+      "PASSWORD_REQUIRED": "需要解压密码（请在下方面板填入）",
+      "PASSWORD_WRONG": "密码不正确",
+      "DISK_FULL": "磁盘空间不足",
+      "CORRUPT_ARCHIVE": "压缩包损坏或下载不完整（分卷缺失？）",
+      "FILE_IN_USE": "文件被占用，请关闭游戏或相关程序后重试",
+      "PERMISSION_DENIED": "权限不足，无法访问该文件",
+      "ARCHIVE_NOT_FOUND": "找不到压缩包文件",
+      "SEVEN_ZIP_MISSING": "未找到 7-Zip，无法解压/压缩",
+      "NO_EXECUTABLE": "压缩包内没有找到可执行文件",
+      "ARCHIVE_MISSING": "压缩包已不存在",
+      "GAME_EXTRACTED": "请先回压当前游戏，再执行该操作",
       "NOT_ARCHIVE_BACKED": "该游戏不是压缩包游戏"
     }
   },

@@ -9,10 +9,12 @@ import { Separator } from '@ui/separator'
 import { Switch } from '@ui/switch'
 import type { ArchivePasswordEntry, ArchiveStatusView } from '@appTypes/models'
 import React, { useCallback, useEffect, useState } from 'react'
+import { useRouter } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { ipcManager } from '~/app/ipc'
 import { useConfigState, useGameLocalState } from '~/hooks'
+import { archiveErrorMessage } from '~/utils/archiveError'
 
 function formatBytes(value: number): string {
   if (!value || value <= 0) return '-'
@@ -45,6 +47,7 @@ function Row({
 
 export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
   const { t } = useTranslation('game')
+  const router = useRouter()
   const [status, setStatus] = useState<ArchiveStatusView | null>(null)
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState<{ jobType: string; percent: number } | null>(null)
@@ -118,7 +121,9 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      toast.error(/password/i.test(message) ? t('archivePanel.needPassword') : message)
+      toast.error(
+        /password/i.test(message) ? t('archivePanel.needPassword') : archiveErrorMessage(message, t)
+      )
     } finally {
       setBusy(false)
       setProgress(null)
@@ -134,9 +139,7 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       const known = ['GAME_EXTRACTED', 'ARCHIVE_MISSING', 'NOT_ARCHIVE_BACKED']
-      toast.error(
-        known.includes(message) ? t('archivePanel.duplicateError.' + message) : message
-      )
+      toast.error(known.includes(message) ? t('archivePanel.duplicateError.' + message) : message)
     } finally {
       setBusy(false)
       await refresh()
@@ -172,6 +175,26 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
 
   const stateLabel =
     status && status.state ? t('archivePanel.stateValue.' + status.state) : t('archivePanel.stateValue.unknown')
+
+  if (status && !status.enabled) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('archivePanel.emptyTitle')}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3 text-sm">
+          <span className="text-muted-foreground">{t('archivePanel.emptyBody')}</span>
+          <Button
+            size="sm"
+            className={cn('w-fit')}
+            onClick={() => void router.navigate({ to: '/scanner' })}
+          >
+            {t('archivePanel.goScanner')}
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -211,6 +234,7 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
           <Row label={t('archivePanel.extractDir')} value={status?.extractDir || '-'} mono />
           <Row label={t('archivePanel.entrypoint')} value={status?.entrypoint || '-'} mono />
           {status?.lastError ? <Row label={t('archivePanel.lastError')} value={status.lastError} /> : null}
+          <span className="text-muted-foreground">{t('archivePanel.termHint')}</span>
         </CardContent>
       </Card>
 
