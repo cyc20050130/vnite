@@ -4,9 +4,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Progress } from '@ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@ui/select'
 import type { ArchiveBatchItem, ArchiveBatchJob, ArchiveBatchOp } from '@appTypes/utils'
-import React from 'react'
-import { useTranslation } from 'react-i18next'
 import React, { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useConfigState } from '~/hooks'
 import { useArchiveBatchStore } from '~/stores/archiveBatchStore'
 import { archiveErrorMessage } from '~/utils/archiveError'
@@ -81,8 +80,8 @@ export function ArchiveBatchDialog(): React.JSX.Element | null {
     if (readable !== item.detail) return readable
     if (/^\d+$/.test(item.detail)) {
       return job.op === 'resolve-duplicates'
-        ? t('archiveBatch.result.trashed', { count: item.detail })
-        : t('archiveBatch.result.backupFiles', { count: item.detail })
+        ? t('archiveBatch.result.trashed', { count: Number(item.detail) })
+        : t('archiveBatch.result.backupFiles', { count: Number(item.detail) })
     }
     return item.detail
   }

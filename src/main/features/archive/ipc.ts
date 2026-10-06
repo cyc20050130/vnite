@@ -2,15 +2,13 @@ import { spawn } from 'child_process'
 import fse from 'fs-extra'
 import { ipcManager } from '~/core/ipc'
 import { ConfigDBManager, GameDBManager } from '~/core/database'
-import { listArchive } from './services/archiveList'
 import { addPasswords, getPasswords, removePassword } from './services/passwordVault'
 import {
   backupSavesNow,
   checkIncompleteArchive,
   compressGame,
   ensureExtracted,
-  getArchiveStatus,
-  runArchiveMaintenance
+  getArchiveStatus
 } from './services/archiveState'
 import {
   cancelArchiveBatch,
@@ -28,11 +26,6 @@ export function setupArchiveIPC(): void {
   ipcManager.handle('archive:extract', async (_event, gameId: string) => ensureExtracted(gameId))
 
   ipcManager.handle('archive:compress', async (_event, gameId: string) => compressGame(gameId))
-
-  ipcManager.handle(
-    'archive:list',
-    async (_event, archivePath: string, password?: string) => listArchive(archivePath, password)
-  )
 
   ipcManager.handle('archive:backup-saves', async (_event, gameId: string) =>
     backupSavesNow(gameId)
@@ -75,8 +68,6 @@ export function setupArchiveIPC(): void {
     async (_event, gameId: string, archivePath: string, compressFirst?: boolean) =>
       switchGameArchive(gameId, archivePath, { compressFirst: Boolean(compressFirst) })
   )
-
-  ipcManager.handle('archive:run-maintenance', async () => runArchiveMaintenance())
 
   ipcManager.handle('archive:get-passwords', async () => getPasswords())
 

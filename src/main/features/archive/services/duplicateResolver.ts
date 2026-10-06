@@ -142,7 +142,7 @@ export function compareCandidates(
     if (a.score !== b.score) return b.score - a.score
   }
   if (a.sizeBytes !== b.sizeBytes) return b.sizeBytes - a.sizeBytes
-  return a.name ? a.name.localeCompare(b.name) : 0
+  return a.path.localeCompare(b.path)
 }
 
 export interface ArchiveGroupPlan<T extends ArchiveCandidateInput> {

@@ -194,13 +194,15 @@ export async function startPhantomMonitor(
 async function spawnLegacyMonitor(gameId: string): Promise<GameMonitor | undefined> {
   try {
     const launcherMode = await GameDBManager.getGameLocalValue(gameId, 'launcher.mode')
+    // Archive games reuse the file launcher, so their monitor config lives in fileConfig.
+    const configKey = launcherMode === 'archive' ? 'file' : launcherMode
     const monitorMode = await GameDBManager.getGameLocalValue(
       gameId,
-      `launcher.${launcherMode}Config.monitorMode`
+      `launcher.${configKey}Config.monitorMode`
     )
     const monitorPath = await GameDBManager.getGameLocalValue(
       gameId,
-      `launcher.${launcherMode}Config.monitorPath`
+      `launcher.${configKey}Config.monitorPath`
     )
     const monitor = new GameMonitor({
       gameId,

@@ -7,9 +7,9 @@ import { DateTimeInput } from '@ui/date-input'
 import { Dialog, DialogContent } from '@ui/dialog'
 import { Input } from '@ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@ui/tooltip'
+import { toast } from 'sonner'
 import { ipcManager } from '~/app/ipc'
 import { useGameState } from '~/hooks'
-import { getGameStore } from '~/stores/game/gameStoreFactory'
 import { cn } from '~/utils'
 
 export function InformationDialog({
@@ -29,9 +29,6 @@ export function InformationDialog({
   )
   const [sortName, setSortName, saveSortName] = useGameState(gameId, 'metadata.sortName', true)
   const [name, setName, saveName] = useGameState(gameId, 'metadata.name', true)
-  const [localName] = useGameState(gameId, 'metadata.localName')
-  const [markPath] = useGameState(gameId, 'utils.markPath')
-  const [gamePath] = useGameState(gameId, 'path.gamePath')
   const [developers, setDevelopers, saveDevelopers] = useGameState(
     gameId,
     'metadata.developers',
@@ -60,13 +57,6 @@ export function InformationDialog({
     | 'genres'
     | null
   >(null)
-
-  const basenameOf = (value?: string): string => {
-    if (!value) return ''
-    const parts = value.split(/[\\/]/).filter(Boolean)
-    const last = parts[parts.length - 1] ?? ''
-    return last.replace(/\.(rar|zip|7z|001|r\d{2}|part\d+)$/i, '')
-  }
 
   /**
    * Rename the folder on disk so it matches the current 译名. The name shown here comes
@@ -166,7 +156,7 @@ export function InformationDialog({
                   size="sm"
                   className={cn('shrink-0')}
                   onClick={() => void renameFolderToName()}
-                  disabled={!(localName || gamePath || markPath)}
+                  disabled={!name}
                 >
                   <span className={cn('text-xs')}>{t('detail.overview.information.renameFolder')}</span>
                 </Button>

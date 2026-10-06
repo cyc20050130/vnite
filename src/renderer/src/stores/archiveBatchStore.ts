@@ -142,7 +142,9 @@ export function useArchiveBatchEvents(): void {
     const offState = ipcManager.on('archive:state-changed', (_event, payload) => {
       if (payload.to === 'extracted' || payload.to === 'archived') {
         const id = singleJobsByGame.get(payload.gameId)
-        if (id) upsertSingleJob(payload.gameId, 'extract', 100, true)
+        if (id) {
+          upsertSingleJob(payload.gameId, payload.to === 'archived' ? 'compress' : 'extract', 100, true)
+        }
       }
     })
 

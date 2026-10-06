@@ -19,7 +19,7 @@ import {
 } from '@appTypes/utils'
 import log from 'electron-log/main'
 import { net } from 'electron'
-import { ConfigDBManager, GameDBManager } from '~/core/database'
+import { GameDBManager } from '~/core/database'
 import { ipcManager } from '~/core/ipc'
 import { tryUpscaleGameImage } from '~/features/game'
 import { scraperManager } from '~/features/scraper'

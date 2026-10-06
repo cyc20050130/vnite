@@ -1,5 +1,8 @@
 import type { ArchiveStatusView } from '@appTypes/models'
-import type { ArchiveEngine } from '~/features/archive/services/engineRegistry'
+import type {
+  ArchiveEngine,
+  ArchiveEngineInfo
+} from '~/features/archive/services/engineRegistry'
 
 export interface IPluginArchiveAPI {
   getStatus(gameId: string): Promise<ArchiveStatusView | null>
@@ -15,7 +18,7 @@ export interface IPluginArchiveAPI {
   /** Register a custom extraction/compression engine (higher priority than built-ins). */
   registerEngine(engine: ArchiveEngine): void
   unregisterEngine(engineId: string): void
-  listEngines(): ArchiveEngine[]
+  listEngines(): Promise<ArchiveEngineInfo[]>
 }
 
 export interface IPluginContributesAPI {

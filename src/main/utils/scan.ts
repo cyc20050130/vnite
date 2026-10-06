@@ -111,7 +111,13 @@ async function scanForGameFolders(rootPath: string): Promise<GameFolderCandidate
 
   const results = await processBatch(
     items,
-    async (item) => {
+    async (
+      item
+    ): Promise<
+      | { type: 'game'; folder: GameFolderCandidate }
+      | { type: 'scan'; folder: { name: string; dirPath: string } }
+      | null
+    > => {
       const fullPath = path.join(rootPath, item.name)
 
       // A bare archive file directly under the scan root is a game entity of its own.

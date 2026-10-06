@@ -264,6 +264,7 @@ async function convertGame(gameId: string, gamePath: string): Promise<void> {
         name: metadata.name || '',
         originalName: metadata.originalName || '',
         sortName: '',
+        version: '',
         releaseDate: metadata.releaseDate || '',
         description: metadata.description || '',
         developers: metadata.developers || [],
@@ -276,7 +277,12 @@ async function convertGame(gameId: string, gamePath: string): Promise<void> {
         vndbId: metadata.vndbId || '',
         igdbId: metadata.igdbId || '',
         ymgalId: metadata.ymgalId || '',
-        extra: []
+        extra: [],
+        playTags: [],
+        characters: [],
+        localName: '',
+        dataSource: '',
+        dataSourceId: ''
       },
       record: {
         addDate: record.addDate || '',
@@ -287,7 +293,8 @@ async function convertGame(gameId: string, gamePath: string): Promise<void> {
         hideFromRecentGames: false,
         timers: record.timer || [],
         dailyPlayTimes: [],
-        storageSize: STORAGE_SIZE_NOT_CALCULATED
+        storageSize: STORAGE_SIZE_NOT_CALCULATED,
+        latestVersionInfo: null
       },
       save: {
         saveList: {},
@@ -581,17 +588,25 @@ async function convertConfig(basePath: string): Promise<void> {
 
     // Converting game-related configurations
     await ConfigDBManager.setConfigValue('game', {
+      archive: DEFAULT_CONFIG_VALUES.game.archive,
       scraper: {
         common: {
           defaultDataSource: mapDataSourceName(v2Config.scraper.defaultDataSource),
           defaultMediaDataSource: 'google',
-          cacheDescriptionImages: false
+          cacheDescriptionImages: false,
+          aggregateSearch: false,
+          aggregateProviders: ['bangumi', 'vndb', 'dlsite', 'ymgal', 'steam', 'igdb'],
+          renameFolderToName: true,
+          preferChineseName: true
         },
         vndb: {
           tagSpoilerLevel: 0
         },
         dlsite: {
           findIdInName: false
+        },
+        f95zone: {
+          cookie: ''
         }
       },
       showcase: {

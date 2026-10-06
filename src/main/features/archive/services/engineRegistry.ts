@@ -59,7 +59,12 @@ export function unregisterArchiveEngine(id: string): void {
   engines.delete(id)
 }
 
-export function listArchiveEngines(): ArchiveEngine[] {
+/** Snapshot of an engine for the plugin API (availability resolved to a boolean). */
+export interface ArchiveEngineInfo extends Omit<ArchiveEngine, 'available'> {
+  available: boolean
+}
+
+export function listArchiveEngines(): ArchiveEngineInfo[] {
   return [...engines.values()].map((engine) => ({
     ...engine,
     available: engine.available ? engine.available() : true
@@ -101,15 +106,15 @@ registerArchiveEngine({
   builtin: true,
   extract: async (archivePath, targetDir, options) => {
     const result = await extractArchive(archivePath, targetDir, options)
-    return { code: result.code, stdout: result.stdout, stderr: result.stderr }
+    return { code: result.code ?? -1, stdout: result.stdout, stderr: result.stderr }
   },
   compress: async (sourceParentDir, folderName, targetArchive, options) => {
     const result = await compressFolder(sourceParentDir, folderName, targetArchive, options)
-    return { code: result.code, stdout: result.stdout, stderr: result.stderr }
+    return { code: result.code ?? -1, stdout: result.stdout, stderr: result.stderr }
   },
   verify: async (archivePath, options) => {
     const result = await testArchive(archivePath, options)
-    return { code: result.code, stdout: result.stdout, stderr: result.stderr }
+    return { code: result.code ?? -1, stdout: result.stdout, stderr: result.stderr }
   }
 })
 

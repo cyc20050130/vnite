@@ -131,7 +131,7 @@ export function detectArchiveByMagic(filePath: string): ArchiveFormat | null {
   try {
     fd = fs.openSync(filePath, 'r')
     const buf = Buffer.alloc(512)
-    const read = fs.readSync(fd, buf, 0, buf.length, 0)
+    const read = fs.readSync(fd, buf as unknown as Uint8Array, 0, buf.length, 0)
     if (read < 4) return null
 
     for (const m of MAGIC) {

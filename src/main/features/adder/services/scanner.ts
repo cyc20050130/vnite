@@ -184,7 +184,8 @@ export class GameScanner extends EventEmitter {
           currentFolder: '',
           foldersToProcess: [],
           failedFolders: [],
-          scannedGames: 0
+          scannedGames: 0,
+          skippedIncomplete: 0
         }
       }
 
@@ -296,7 +297,8 @@ export class GameScanner extends EventEmitter {
         currentFolder: '',
         foldersToProcess: [],
         failedFolders: [],
-        scannedGames: 0
+        scannedGames: 0,
+        skippedIncomplete: 0
       }
       this.currentScannerConfig = {
         ...scanner,

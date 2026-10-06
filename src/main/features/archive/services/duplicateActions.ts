@@ -80,7 +80,17 @@ export async function switchGameArchive(
   await GameDBManager.setGameLocalValue(gameId, 'archive.parts', [archivePath])
   await GameDBManager.setGameLocalValue(gameId, 'archive.format', (info?.format ?? 'other') as never)
   await GameDBManager.setGameLocalValue(gameId, 'archive.state', 'archived' as never)
-  await GameDBManager.setGameLocalValue(gameId, 'archive.encrypted', Boolean(info?.encrypted))
+  // Encryption cannot be read from the filename; probe the header so a switched-in
+  // password archive still prompts for its password on extraction.
+  let encrypted = false
+  try {
+    const { listArchive } = await import('./archiveList')
+    const listing = await listArchive(archivePath)
+    encrypted = listing.status === 'encrypted' || listing.summary?.hasEncryptedData === true
+  } catch {
+    encrypted = false
+  }
+  await GameDBManager.setGameLocalValue(gameId, 'archive.encrypted', encrypted)
   await GameDBManager.setGameLocalValue(gameId, 'archive.archiveBytes', stats.size)
   await GameDBManager.setGameLocalValue(gameId, 'archive.extractDir', '')
   await GameDBManager.setGameLocalValue(gameId, 'archive.entrypoint', '')

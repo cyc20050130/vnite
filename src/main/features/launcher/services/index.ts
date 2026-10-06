@@ -50,7 +50,11 @@ export async function launcher(gameId: string): Promise<void> {
       {
         gameId,
         launchMode: mode,
-        launchConfig: await GameDBManager.getGameLocalValue(gameId, `launcher.${mode}Config`)
+        // Archive games reuse the file launcher, so their config lives in fileConfig.
+        launchConfig: await GameDBManager.getGameLocalValue(
+          gameId,
+          `launcher.${mode === 'archive' ? 'file' : mode}Config`
+        )
       },
       { source: 'launcher' }
     )

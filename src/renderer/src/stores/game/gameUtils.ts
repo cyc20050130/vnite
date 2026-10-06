@@ -50,7 +50,7 @@ export function getArchiveFilterValues(gameId: string): string[] | null {
     if (!state.initialized || !state.data) return null
     const archive = state.data.archive
     if (!archive?.enabled) return ['notArchiveBacked']
-    const values = [archive.state || 'archived']
+    const values: string[] = [archive.state || 'archived']
     if ((archive.duplicates ?? []).length > 0) values.push('hasDuplicates')
     return values
   } catch {
@@ -960,7 +960,8 @@ export function getGameRecord(gameId: string): gameDoc['record'] {
         hideFromRecentGames: false,
         timers: [],
         storageSize: STORAGE_SIZE_NOT_CALCULATED,
-        dailyPlayTimes: []
+        dailyPlayTimes: [],
+        latestVersionInfo: null
       }
     )
   } catch (error) {
@@ -974,7 +975,8 @@ export function getGameRecord(gameId: string): gameDoc['record'] {
       hideFromRecentGames: false,
       timers: [],
       dailyPlayTimes: [],
-      storageSize: STORAGE_SIZE_NOT_CALCULATED
+      storageSize: STORAGE_SIZE_NOT_CALCULATED,
+      latestVersionInfo: null
     }
   }
 }

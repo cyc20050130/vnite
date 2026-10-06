@@ -76,8 +76,34 @@ export interface AppEvents {
 
   'archive:job-progress': {
     gameId: string
-    jobType: 'extract' | 'compress'
+    jobType: 'extract' | 'compress' | 'check-version' | 'backup-saves'
     percent: number
+  }
+
+  'archive:before-extract': {
+    gameId: string
+    archivePath: string
+    parts: string[]
+    format: string
+  }
+
+  'archive:after-extract': {
+    gameId: string
+    extractDir: string
+    entrypoint: string
+    restoredSaves: number
+  }
+
+  'archive:before-compress': {
+    gameId: string
+    extractDir: string
+    format: string
+  }
+
+  'archive:after-compress': {
+    gameId: string
+    archivePath: string
+    bytes: number
   }
 
   'archive:password-required': {

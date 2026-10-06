@@ -174,38 +174,42 @@ async function runPool(job: ArchiveBatchJob): Promise<void> {
 
   await Promise.all(Array.from({ length: Math.max(1, job.concurrency) }, () => worker()))
 
-  if (job.status === 'running') job.status = 'completed'
-  job.finishedAt = new Date().toISOString()
-  emitProgress(job, true)
-  ipcManager.send('archive:batch-finished', snapshot(job))
+  // Only finalise on natural completion. cancelArchiveBatch already marked the job
+  // cancelled and emitted the finished event, so it must not re-emit or notify here.
+  if (job.status === 'running') {
+    job.status = 'completed'
+    job.finishedAt = new Date().toISOString()
+    emitProgress(job, true)
+    ipcManager.send('archive:batch-finished', snapshot(job))
 
-  // Optional completion notification (the renderer may be closed by then).
-  try {
-    const onFinish = await ConfigDBManager.getConfigValue('game.archive.batchOnFinish')
-    if (onFinish === 'notify') {
-      const success = job.items.filter((item) => item.status === 'success').length
-      const failed = job.items.filter((item) => item.status === 'failed').length
-      const skipped = job.items.filter((item) => item.status === 'skipped').length
-      native.sendSystemNotification(
-        'vnite',
-        i18next.t('system-notification:archiveBatchTitle'),
-        i18next.t('system-notification:archiveBatchBody', { success, failed, skipped })
-      )
+    // Optional completion notification (the renderer may be closed by then).
+    try {
+      const onFinish = await ConfigDBManager.getConfigValue('game.archive.batchOnFinish')
+      if (onFinish === 'notify') {
+        const success = job.items.filter((item) => item.status === 'success').length
+        const failed = job.items.filter((item) => item.status === 'failed').length
+        const skipped = job.items.filter((item) => item.status === 'skipped').length
+        native.sendSystemNotification(
+          'vnite',
+          i18next.t('system-notification:archiveBatchTitle'),
+          i18next.t('system-notification:archiveBatchBody', { success, failed, skipped })
+        )
+      }
+    } catch (error) {
+      log.warn('[Archive] Batch notification failed: ' + String(error))
     }
-  } catch (error) {
-    log.warn('[Archive] Batch notification failed: ' + String(error))
+    log.info(
+      '[Archive] Batch ' +
+        job.op +
+        ' finished: ' +
+        job.items.filter((i) => i.status === 'success').length +
+        ' ok / ' +
+        job.items.filter((i) => i.status === 'failed').length +
+        ' failed / ' +
+        job.items.filter((i) => i.status === 'skipped').length +
+        ' skipped'
+    )
   }
-  log.info(
-    '[Archive] Batch ' +
-      job.op +
-      ' finished: ' +
-      job.items.filter((i) => i.status === 'success').length +
-      ' ok / ' +
-      job.items.filter((i) => i.status === 'failed').length +
-      ' failed / ' +
-      job.items.filter((i) => i.status === 'skipped').length +
-      ' skipped'
-  )
 }
 
 async function resolveConfiguredConcurrency(op: ArchiveBatchOp): Promise<number> {

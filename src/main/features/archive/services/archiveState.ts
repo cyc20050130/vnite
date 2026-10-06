@@ -446,7 +446,9 @@ export async function compressGame(gameId: string): Promise<string> {
         ? await compressEngine.compress(parent, folderName, tmpArchive, compressOptions)
         : await compressFolder(parent, folderName, tmpArchive, compressOptions)
     if (result.code !== 0) {
-      throw new Error('7-Zip compress failed: ' + (result.stderr || result.stdout).slice(-300))
+      throw new Error(
+        '7-Zip compress failed: ' + (result.stderr ?? result.stdout ?? '').slice(-300)
+      )
     }
     const test = await testArchive(tmpArchive, { timeoutMs: LONG_TIMEOUT })
     if (test.code !== 0) {

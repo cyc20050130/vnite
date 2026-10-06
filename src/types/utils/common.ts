@@ -15,6 +15,7 @@ export interface ScannerProgress {
     entryKind?: 'folder' | 'archive'
   }[]
   scannedGames: number
+  skippedIncomplete: number
   errorMessage?: string
 }
 

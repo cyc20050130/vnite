@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { ipcManager } from '~/app/ipc'
 import { useConfigState, useGameLocalState } from '~/hooks'
+import { cn } from '~/utils'
 import { archiveErrorMessage } from '~/utils/archiveError'
 
 function formatBytes(value: number): string {
@@ -59,6 +60,14 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [dontAskAgain, setDontAskAgain] = useState(false)
 
+  const refresh = useCallback(async (): Promise<void> => {
+    try {
+      setStatus(await ipcManager.invoke('archive:get-status', gameId))
+    } catch {
+      setStatus(null)
+    }
+  }, [gameId])
+
   const backupSaves = useCallback(async (): Promise<void> => {
     try {
       const result = await ipcManager.invoke('archive:backup-saves', gameId)
@@ -68,14 +77,6 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
       toast.error(error instanceof Error ? error.message : String(error))
     }
   }, [gameId, t, refresh])
-
-  const refresh = useCallback(async (): Promise<void> => {
-    try {
-      setStatus(await ipcManager.invoke('archive:get-status', gameId))
-    } catch {
-      setStatus(null)
-    }
-  }, [gameId])
 
   const refreshPasswords = useCallback(async (): Promise<void> => {
     try {
