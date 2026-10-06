@@ -19,6 +19,7 @@ import {
 import { classifyArchive } from '~/features/archive/services/archiveDetect'
 import { guessVersion } from '~/features/archive/services/titleResolver'
 import { planArchiveGroups, type DuplicateInfo } from '~/features/archive/services/duplicateResolver'
+import { detectIncompleteArchive } from '~/features/archive/services/incompleteDetect'
 import { listArchive } from '~/features/archive/services/archiveList'
 import { addGameToDB } from './adder'
 
@@ -519,6 +520,27 @@ export class GameScanner extends EventEmitter {
         if (entryKind === 'archive') {
           const archiveEnabled = await ConfigDBManager.getConfigValue('game.archive.enabled')
           if (!archiveEnabled) return
+        }
+
+        // Half-downloaded archives would otherwise become permanently broken entries.
+        if (entryKind === 'archive' && gamePath) {
+          const skipIncomplete = await ConfigDBManager.getConfigValue('game.archive.skipIncomplete')
+          if (skipIncomplete) {
+            const incomplete = await detectIncompleteArchive(gamePath)
+            if (incomplete.incomplete) {
+              log.info(
+                '[Scanner] Skipped incomplete archive ' +
+                  gamePath +
+                  ' (' +
+                  incomplete.reason +
+                  ': ' +
+                  incomplete.detail +
+                  ')'
+              )
+              scannerProgress.skippedIncomplete = (scannerProgress.skippedIncomplete ?? 0) + 1
+              return
+            }
+          }
         }
 
         let searchName = folder.name

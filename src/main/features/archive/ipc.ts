@@ -6,6 +6,7 @@ import { listArchive } from './services/archiveList'
 import { addPasswords, getPasswords, removePassword } from './services/passwordVault'
 import {
   backupSavesNow,
+  checkIncompleteArchive,
   compressGame,
   ensureExtracted,
   getArchiveStatus,
@@ -41,6 +42,10 @@ export function setupArchiveIPC(): void {
     'archive:batch-run',
     async (_event, op: ArchiveBatchOp, gameIds: string[], concurrency?: number) =>
       runArchiveBatch(op, gameIds, concurrency)
+  )
+
+  ipcManager.handle('archive:check-incomplete', async (_event, gameId: string) =>
+    checkIncompleteArchive(gameId)
   )
 
   ipcManager.handle('archive:batch-cancel', async (_event, jobId: string) =>

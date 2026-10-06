@@ -183,6 +183,11 @@ export interface gameArchiveLocal {
     sizeBytes: number
     reason: string
   }[]
+  /** Set when the archive (or one of its volumes) has not finished downloading. */
+  incomplete: boolean
+  incompleteReason: string
+  incompleteDetail: string
+  incompleteCheckedAt: string
   /** Mirror of in-folder saves, used to survive re-compression. */
   saveBackupPath: string
   saveBackupFiles: number
@@ -213,6 +218,9 @@ export interface ArchiveStatusView {
   saveBackupPath: string
   saveBackupFiles: number
   saveBackupAt: string
+  incomplete: boolean
+  incompleteReason: string
+  incompleteDetail: string
 }
 
 export interface gameLocalDoc {
@@ -302,6 +310,10 @@ export const DEFAULT_GAME_LOCAL_VALUES: Readonly<gameLocalDoc> = {
       sizeBytes: number
       reason: string
     }[],
+    incomplete: false,
+    incompleteReason: '',
+    incompleteDetail: '',
+    incompleteCheckedAt: '',
     saveBackupPath: '',
     saveBackupFiles: 0,
     saveBackupAt: ''

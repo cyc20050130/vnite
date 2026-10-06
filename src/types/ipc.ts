@@ -297,6 +297,9 @@ type MainIpcEvents =
         gameIds: string[],
         concurrency?: number
       ) => ArchiveBatchJob
+      'archive:check-incomplete': (
+        gameId: string
+      ) => { incomplete: boolean; reason: string; detail: string }
       'archive:batch-cancel': (jobId: string) => boolean
       'archive:batch-jobs': () => ArchiveBatchJob[]
       'archive:duplicates-trash': (

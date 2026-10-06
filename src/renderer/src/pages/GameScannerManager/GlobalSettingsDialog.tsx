@@ -31,6 +31,7 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
     'game.scraper.common.aggregateSearch'
   )
   const [nameFromFolder, setNameFromFolder] = useConfigState('game.scraper.common.nameFromFolder')
+  const [skipIncomplete, setSkipIncomplete] = useConfigState('game.archive.skipIncomplete')
   const [preserveSaves, setPreserveSaves] = useConfigState('game.archive.preserveSaves')
   const [duplicatePriority, setDuplicatePriority] = useConfigState('game.archive.duplicatePriority')
   const [extractRoot, setExtractRoot] = useConfigState('game.archive.defaultExtractRoot')
@@ -168,6 +169,24 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
             </TooltipTrigger>
             <TooltipContent side="bottom" align="start">
               <div className={cn('text-xs')}>{t('globalSettings.nameFromFolderTooltip')}</div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Skip archives that are still downloading */}
+          <div className={cn('whitespace-nowrap select-none justify-self-start')}>
+            {t('globalSettings.skipIncomplete')}
+          </div>
+          <Tooltip>
+            <TooltipTrigger className={cn('p-0 max-w-none m-0 w-full')}>
+              <div>
+                <Switch
+                  checked={Boolean(skipIncomplete)}
+                  onCheckedChange={(value) => void setSkipIncomplete(value)}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start">
+              <div className={cn('text-xs')}>{t('globalSettings.skipIncompleteTooltip')}</div>
             </TooltipContent>
           </Tooltip>
 

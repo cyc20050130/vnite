@@ -106,7 +106,9 @@
     "autoCompressTooltip": "游戏被标记为\"已游玩\"后，自动重新压缩并删除解压目录",
     "externalTool": "外部压缩工具",
     "externalToolPlaceholder": "例如 Bandizip 或 WinRAR 的 exe 路径",
-    "externalToolTooltip": "配置后在游戏属性页可以用它打开当前压缩包（Bandizip / WinRAR / 7-Zip 文件管理器均可）。"
+    "externalToolTooltip": "配置后在游戏属性页可以用它打开当前压缩包（Bandizip / WinRAR / 7-Zip 文件管理器均可）。",
+    "skipIncomplete": "跳过未下载完的压缩包",
+    "skipIncompleteTooltip": "扫描时检测正在下载/被占用/缺少分卷的压缩包并跳过，避免生成坏的游戏条目；可在游戏属性页手动重新检测。"
   },
   "dataSources": {
     "steam": "Steam",

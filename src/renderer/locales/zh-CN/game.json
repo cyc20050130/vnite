@@ -29,7 +29,8 @@
       "notFinished": "未标记为已通关",
       "noDataSource": "没有数据源，无法检查版本",
       "noVersion": "数据源未提供版本",
-      "noDuplicates": "没有重复压缩包"
+      "noDuplicates": "没有重复压缩包",
+      "incompleteArchive": "压缩包未下载完成"
     },
     "result": {
       "latest": "已是最新",
@@ -170,12 +171,28 @@
       "ARCHIVE_MISSING": "压缩包已不存在",
       "GAME_EXTRACTED": "请先回压当前游戏，再执行该操作",
       "NOT_ARCHIVE_BACKED": "该游戏不是压缩包游戏",
-      "NO_EXTERNAL_TOOL": "还没有配置外部压缩工具（扫描器 → 全局设置）"
+      "NO_EXTERNAL_TOOL": "还没有配置外部压缩工具（扫描器 → 全局设置）",
+      "INCOMPLETE_DOWNLOAD": "压缩包尚未下载完成（或被下载器占用），请等下载结束后重试"
     },
     "openLocation": "打开位置",
     "copyPath": "复制路径",
     "openWithExternal": "外部工具打开",
-    "pathCopied": "路径已复制"
+    "pathCopied": "路径已复制",
+    "recheck": "重新检测",
+    "incomplete": {
+      "badge": "未下载完成",
+      "detail": "检测详情",
+      "stillIncomplete": "仍未完成（{reason}）",
+      "ready": "压缩包已完整",
+      "reason": {
+        "none": "正常",
+        "downloadInProgress": "仍有下载中的临时文件",
+        "missingVolumes": "缺少分卷",
+        "truncated": "文件被截断",
+        "zeroSize": "空文件",
+        "locked": "文件被下载器占用"
+      }
+    }
   },
   "librarybar": {
     "home": "主页",

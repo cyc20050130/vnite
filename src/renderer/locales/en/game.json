@@ -29,7 +29,8 @@
       "notFinished": "Not marked as finished",
       "noDataSource": "No data source for a version check",
       "noVersion": "Provider returned no version",
-      "noDuplicates": "No duplicate archives"
+      "noDuplicates": "No duplicate archives",
+      "incompleteArchive": "Archive download incomplete"
     },
     "result": {
       "latest": "Up to date",
@@ -170,12 +171,28 @@
       "ARCHIVE_MISSING": "That archive no longer exists",
       "GAME_EXTRACTED": "Re-compress this game before doing that",
       "NOT_ARCHIVE_BACKED": "This game is not archive-backed",
-      "NO_EXTERNAL_TOOL": "No external archiver configured (Scanner → Global settings)"
+      "NO_EXTERNAL_TOOL": "No external archiver configured (Scanner → Global settings)",
+      "INCOMPLETE_DOWNLOAD": "The archive has not finished downloading (or is locked by the downloader)"
     },
     "openLocation": "Open location",
     "copyPath": "Copy path",
     "openWithExternal": "Open externally",
-    "pathCopied": "Path copied"
+    "pathCopied": "Path copied",
+    "recheck": "Re-check",
+    "incomplete": {
+      "badge": "Download incomplete",
+      "detail": "Detection detail",
+      "stillIncomplete": "Still incomplete ({reason})",
+      "ready": "Archive is complete",
+      "reason": {
+        "none": "OK",
+        "downloadInProgress": "temporary download file present",
+        "missingVolumes": "missing volume(s)",
+        "truncated": "file truncated",
+        "zeroSize": "empty file",
+        "locked": "locked by the downloader"
+      }
+    }
   },
   "librarybar": {
     "home": "Home",

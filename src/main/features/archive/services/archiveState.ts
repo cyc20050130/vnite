@@ -20,6 +20,7 @@ import { backupSaves, restoreSaves } from './saveVault'
 import { emitArchiveProgress } from './batchProgress'
 import { classifyArchiveError } from './errorCodes'
 import { pickArchiveEngine } from './engineRegistry'
+import { detectIncompleteArchive } from './incompleteDetect'
 import { backupGameSave, searchGameSavePaths } from '~/features/game'
 
 const TMP_SUFFIX = '.vnite-tmp'
@@ -348,6 +349,24 @@ async function ensureSaveSafetyBeforeCompress(gameId: string, extractDir: string
   }
 }
 
+/** Re-check whether the game's archive finished downloading and cache the result. */
+export async function checkIncompleteArchive(gameId: string): Promise<{
+  incomplete: boolean
+  reason: string
+  detail: string
+}> {
+  const local = await GameDBManager.getGameLocal(gameId)
+  const parts = local.archive?.parts ?? []
+  const target = parts.find((part) => part && fse.existsSync(part)) ?? local.path?.gamePath ?? ''
+  if (!target) return { incomplete: false, reason: 'none', detail: '' }
+  const check = await detectIncompleteArchive(target)
+  await GameDBManager.setGameLocalValue(gameId, 'archive.incomplete', check.incomplete)
+  await GameDBManager.setGameLocalValue(gameId, 'archive.incompleteReason', check.reason)
+  await GameDBManager.setGameLocalValue(gameId, 'archive.incompleteDetail', check.detail)
+  await GameDBManager.setGameLocalValue(gameId, 'archive.incompleteCheckedAt', new Date().toISOString())
+  return { incomplete: check.incomplete, reason: check.reason, detail: check.detail }
+}
+
 /** Manual "back up saves now" entry point for the archive panel. */
 export async function backupSavesNow(gameId: string): Promise<{ files: number; mode: string }> {
   const local = await GameDBManager.getGameLocal(gameId)
@@ -492,7 +511,10 @@ export async function getArchiveStatus(gameId: string): Promise<ArchiveStatus | 
     duplicates: archive?.duplicates ?? [],
     saveBackupPath: archive?.saveBackupPath ?? '',
     saveBackupFiles: archive?.saveBackupFiles ?? 0,
-    saveBackupAt: archive?.saveBackupAt ?? ''
+    saveBackupAt: archive?.saveBackupAt ?? '',
+    incomplete: Boolean(archive?.incomplete),
+    incompleteReason: archive?.incompleteReason ?? '',
+    incompleteDetail: archive?.incompleteDetail ?? ''
   }
 }
 

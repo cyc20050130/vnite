@@ -132,6 +132,27 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
     }
   }
 
+  const recheckArchive = async (): Promise<void> => {
+    setBusy(true)
+    try {
+      const result = await ipcManager.invoke('archive:check-incomplete', gameId)
+      if (result.incomplete) {
+        toast.error(
+          t('archivePanel.incomplete.stillIncomplete', {
+            reason: t('archivePanel.incomplete.reason.' + result.reason)
+          })
+        )
+      } else {
+        toast.success(t('archivePanel.incomplete.ready'))
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error))
+    } finally {
+      setBusy(false)
+      await refresh()
+    }
+  }
+
   const targetPath =
     status && status.state === 'extracted' && status.extractDir
       ? status.extractDir
@@ -259,6 +280,14 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
             </Button>
             <Button
               size="sm"
+              variant="outline"
+              onClick={() => void recheckArchive()}
+              disabled={busy}
+            >
+              {t('archivePanel.recheck')}
+            </Button>
+            <Button
+              size="sm"
               variant="secondary"
               onClick={() => (confirmCompress === false ? void run('compress') : setConfirmOpen(true))}
               disabled={busy || status?.state !== 'extracted'}
@@ -271,6 +300,14 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
           <div className="flex items-center gap-2">
             <Badge variant={status?.state === 'error' ? 'destructive' : 'secondary'}>{stateLabel}</Badge>
             {status?.encrypted ? <Badge variant="outline">{t('archivePanel.encrypted')}</Badge> : null}
+            {status?.incomplete ? (
+              <Badge variant="destructive">
+                {t('archivePanel.incomplete.badge')}
+                {status.incompleteReason
+                  ? ' · ' + t('archivePanel.incomplete.reason.' + status.incompleteReason)
+                  : ''}
+              </Badge>
+            ) : null}
             {busy && progress ? (
               <span className="text-muted-foreground">{progress.percent + '%'}</span>
             ) : null}
@@ -282,6 +319,9 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
           <Row label={t('archivePanel.archivePath')} value={status?.archivePath || '-'} mono />
           <Row label={t('archivePanel.extractDir')} value={status?.extractDir || '-'} mono />
           <Row label={t('archivePanel.entrypoint')} value={status?.entrypoint || '-'} mono />
+          {status?.incomplete && status.incompleteDetail ? (
+            <Row label={t('archivePanel.incomplete.detail')} value={status.incompleteDetail} mono />
+          ) : null}
           {status?.lastError ? <Row label={t('archivePanel.lastError')} value={status.lastError} /> : null}
           <span className="text-muted-foreground">{t('archivePanel.termHint')}</span>
         </CardContent>

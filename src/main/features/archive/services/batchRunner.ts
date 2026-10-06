@@ -58,10 +58,12 @@ async function shouldSkip(op: ArchiveBatchOp, gameId: string): Promise<SkipDecis
   switch (op) {
     case 'extract':
       if (!enabled) return { skip: true, reason: 'notArchiveBacked' }
+      if (local?.archive?.incomplete) return { skip: true, reason: 'incompleteArchive' }
       if (state === 'extracted') return { skip: true, reason: 'alreadyExtracted' }
       return { skip: false }
     case 'compress':
       if (!enabled) return { skip: true, reason: 'notArchiveBacked' }
+      if (local?.archive?.incomplete) return { skip: true, reason: 'incompleteArchive' }
       if (state !== 'extracted') return { skip: true, reason: 'notExtracted' }
       {
         const playStatus = await GameDBManager.getGameValue(gameId, 'record.playStatus')

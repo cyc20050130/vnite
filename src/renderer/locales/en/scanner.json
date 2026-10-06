@@ -106,7 +106,9 @@
     "autoCompressTooltip": "When a game is marked as finished, re-compress it and delete the extracted folder",
     "externalTool": "External archiver",
     "externalToolPlaceholder": "Path to Bandizip or WinRAR exe",
-    "externalToolTooltip": "Once set, the archive panel can open the current archive with it (Bandizip / WinRAR / 7-Zip FM all work)."
+    "externalToolTooltip": "Once set, the archive panel can open the current archive with it (Bandizip / WinRAR / 7-Zip FM all work).",
+    "skipIncomplete": "Skip incomplete archives",
+    "skipIncompleteTooltip": "Skip archives that are still downloading, locked or missing volumes so no broken game entry is created. Re-check manually from the archive panel."
   },
   "dataSources": {
     "steam": "Steam",

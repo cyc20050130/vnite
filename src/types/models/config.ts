@@ -52,6 +52,8 @@ export interface configDocs {
       keepArchiveAfterExtract: boolean
       autoCompressOnFinished: boolean
       minArchiveSizeMB: number
+      /** Skip archives that are still downloading (locked / truncated / missing volumes). */
+      skipIncomplete: boolean
       /** Back up saves before re-compressing and restore them after extraction. */
       preserveSaves: boolean
       /** Save vault location; empty means <userData>/save-vault. */
@@ -447,6 +449,7 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
       keepArchiveAfterExtract: false,
       autoCompressOnFinished: false,
       minArchiveSizeMB: 1,
+      skipIncomplete: true,
       preserveSaves: true,
       saveVaultPath: '',
       externalToolPath: '',
