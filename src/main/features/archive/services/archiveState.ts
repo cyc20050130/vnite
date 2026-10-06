@@ -17,6 +17,7 @@ import { classifyArchive, detectArchiveByMagic } from './archiveDetect'
 import { extractRarArchive, isRarPasswordError } from './rarEngine'
 import { resolvePasswordForArchive } from './passwordVault'
 import { backupSaves, restoreSaves } from './saveVault'
+import { emitArchiveProgress } from './batchProgress'
 import { backupGameSave, searchGameSavePaths } from '~/features/game'
 
 const TMP_SUFFIX = '.vnite-tmp'
@@ -216,6 +217,7 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
         onProgress: (percent) => {
           if (percent >= 0) {
             ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent })
+            emitArchiveProgress(gameId, percent)
           }
         }
       })
@@ -223,8 +225,10 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
       const result = await extractArchive(archivePath, tmpDir, {
         password: password ?? undefined,
         timeoutMs: LONG_TIMEOUT,
-        onProgress: (percent) =>
+        onProgress: (percent) => {
           ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent })
+          emitArchiveProgress(gameId, percent)
+        }
       })
       if (result.code !== 0) {
         const output = (result.stderr || '') + (result.stdout || '')
@@ -370,7 +374,10 @@ export async function compressGame(gameId: string): Promise<string> {
       format,
       level: 9,
       timeoutMs: LONG_TIMEOUT,
-      onProgress: (percent) => ipcManager.send('archive:job-progress', { gameId, jobType: 'compress', percent })
+      onProgress: (percent) => {
+        ipcManager.send('archive:job-progress', { gameId, jobType: 'compress', percent })
+        emitArchiveProgress(gameId, percent)
+      }
     })
     if (result.code !== 0) {
       throw new Error('7-Zip compress failed: ' + (result.stderr || result.stdout).slice(-300))

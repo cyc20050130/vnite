@@ -1,3 +1,4 @@
+export * from './archive'
 export * from './common'
 export * from './importer'
 export * from './scraper'

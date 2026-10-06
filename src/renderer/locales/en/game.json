@@ -1,4 +1,40 @@
 {
+  "archiveBatch": {
+    "title": {
+      "extract": "Extract all",
+      "compress": "Re-compress all",
+      "backupSaves": "Back up saves",
+      "checkVersion": "Check versions"
+    },
+    "status": {
+      "pending": "Pending",
+      "running": "Running",
+      "success": "Done",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "summary": "{done}/{total} done, {failed} failed, {skipped} skipped",
+    "concurrency": "Concurrency {count}",
+    "actions": {
+      "cancel": "Cancel job",
+      "retryFailed": "Retry failed",
+      "close": "Close"
+    },
+    "skipReason": {
+      "notArchiveBacked": "Not an archive game",
+      "alreadyExtracted": "Already extracted",
+      "notExtracted": "Not extracted",
+      "notFinished": "Not marked as finished",
+      "noDataSource": "No data source for a version check",
+      "noVersion": "Provider returned no version"
+    },
+    "result": {
+      "latest": "Up to date",
+      "outdated": "Update available",
+      "unknown": "Not comparable",
+      "backupFiles": "{count} file(s) backed up"
+    }
+  },
   "version": {
     "title": "Version",
     "check": "Check update",
@@ -813,7 +849,14 @@
       "removeFrom": "Batch Remove From",
       "newCollection": "New Collection",
       "editInfo": "Batch Edit Game Info",
-      "updateMetadata": "Update Metadata",
+            "archive": {
+        "title": "Archives",
+        "extract": "Extract all",
+        "compress": "Re-compress all",
+        "backupSaves": "Back up saves",
+        "checkVersion": "Check versions"
+      },
+"updateMetadata": "Update Metadata",
       "delete": "Batch Delete"
     },
     "information": {

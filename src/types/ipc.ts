@@ -6,7 +6,13 @@ import {
   EventType
 } from '@appTypes/event'
 import { ReportExportRequest, ReportExportResponse } from '@appTypes/report'
-import { BatchUpdateGameMetadataProgress, OverallScanProgress } from '@appTypes/utils'
+import {
+  ArchiveBatchJob,
+  ArchiveBatchOp,
+  BatchUpdateGameMetadataProgress,
+  OverallScanProgress,
+  VersionCheckResult
+} from '@appTypes/utils'
 import { ProgressInfo, UpdateCheckResult } from 'electron-updater'
 import type {
   ArchivePasswordEntry,
@@ -286,6 +292,14 @@ type MainIpcEvents =
       'archive:remove-password': (id: string) => void
       'archive:retry-password': (gameId: string) => string
       'archive:backup-saves': (gameId: string) => { files: number; mode: string }
+      'archive:batch-run': (
+        op: ArchiveBatchOp,
+        gameIds: string[],
+        concurrency?: number
+      ) => ArchiveBatchJob
+      'archive:batch-cancel': (jobId: string) => boolean
+      'archive:batch-jobs': () => ArchiveBatchJob[]
+      'scraper:check-game-version': (gameId: string) => VersionCheckResult
       'scraper:check-game-exists': (dataSource: string, identifier: ScraperIdentifier) => boolean
       'scraper:get-game-version': (
         dataSource: string,
@@ -457,6 +471,8 @@ type RendererIpcEvents = {
     { gameId: string; jobType: 'extract' | 'compress'; percent: number }
   ]
   'archive:state-changed': [{ gameId: string; from: string; to: string; error?: string }]
+  'archive:batch-progress': [job: ArchiveBatchJob]
+  'archive:batch-finished': [job: ArchiveBatchJob]
   'archive:password-required': [
     {
       gameId: string

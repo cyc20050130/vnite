@@ -1,8 +1,13 @@
 import {
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuSeparator
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger
 } from '~/components/ui/context-menu'
+import type { ArchiveBatchOp } from '@appTypes/utils'
+import { useArchiveBatchStore } from '~/stores/archiveBatchStore'
 import { cn } from '~/utils'
 import { CollectionMenu } from './CollectionMenu'
 import { InformationDialog } from './InformationDialog'
@@ -27,6 +32,10 @@ export function BatchGameNavCM({
   } = useGameMetadataUpdaterStore()
   const gameIds = Object.keys(selectedGamesMap)
   const location = useLocation()
+  const startBatch = useArchiveBatchStore((state) => state.start)
+  const onBatch = (op: ArchiveBatchOp): void => {
+    void startBatch(op, gameIds)
+  }
 
   useEffect(() => {
     // clear batchEditor gameList when switching to a non-game-detail page and not in batchMode
@@ -64,6 +73,26 @@ export function BatchGameNavCM({
       >
         <div>{t('batchEditor.contextMenu.updateMetadata')}</div>
       </ContextMenuItem>
+      {/* Archive batch operations */}
+      <ContextMenuSub>
+        <ContextMenuSubTrigger>
+          <div>{t('batchEditor.contextMenu.archive.title')}</div>
+        </ContextMenuSubTrigger>
+        <ContextMenuSubContent className={cn('w-[200px]')}>
+          <ContextMenuItem onClick={() => onBatch('extract')}>
+            <div>{t('batchEditor.contextMenu.archive.extract')}</div>
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => onBatch('compress')}>
+            <div>{t('batchEditor.contextMenu.archive.compress')}</div>
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => onBatch('backup-saves')}>
+            <div>{t('batchEditor.contextMenu.archive.backupSaves')}</div>
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => onBatch('check-version')}>
+            <div>{t('batchEditor.contextMenu.archive.checkVersion')}</div>
+          </ContextMenuItem>
+        </ContextMenuSubContent>
+      </ContextMenuSub>
       <ContextMenuSeparator />
       {/* Delete Game Alert */}
       <DeleteGameAlert gameIds={gameIds}>

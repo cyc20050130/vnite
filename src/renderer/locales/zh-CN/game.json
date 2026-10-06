@@ -1,4 +1,40 @@
 {
+  "archiveBatch": {
+    "title": {
+      "extract": "批量解压",
+      "compress": "批量回压",
+      "backupSaves": "批量备份存档",
+      "checkVersion": "批量检查版本"
+    },
+    "status": {
+      "pending": "等待",
+      "running": "进行中",
+      "success": "成功",
+      "failed": "失败",
+      "skipped": "跳过"
+    },
+    "summary": "完成 {done}/{total}，失败 {failed}，跳过 {skipped}",
+    "concurrency": "并发 {count}",
+    "actions": {
+      "cancel": "取消任务",
+      "retryFailed": "仅重试失败项",
+      "close": "关闭"
+    },
+    "skipReason": {
+      "notArchiveBacked": "不是压缩包游戏",
+      "alreadyExtracted": "已经解压",
+      "notExtracted": "尚未解压",
+      "notFinished": "未标记为已通关",
+      "noDataSource": "没有数据源，无法检查版本",
+      "noVersion": "数据源未提供版本"
+    },
+    "result": {
+      "latest": "已是最新",
+      "outdated": "有更新",
+      "unknown": "无法比较",
+      "backupFiles": "已备份 {count} 个文件"
+    }
+  },
   "version": {
     "title": "版本",
     "check": "检查更新",
@@ -813,7 +849,14 @@
       "removeFrom": "移除出",
       "newCollection": "新收藏",
       "editInfo": "编辑信息",
-      "updateMetadata": "更新元数据",
+            "archive": {
+        "title": "压缩包",
+        "extract": "批量解压",
+        "compress": "批量回压",
+        "backupSaves": "批量备份存档",
+        "checkVersion": "批量检查版本"
+      },
+"updateMetadata": "更新元数据",
       "delete": "删除"
     },
     "information": {

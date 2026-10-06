@@ -1,4 +1,5 @@
 import { scraperManager } from './services'
+import { checkGameVersion } from './services/versionCheck'
 import { ScraperIdentifier, AggregatedSearchOptions } from '@appTypes/utils'
 import { ipcManager } from '~/core/ipc'
 import { ScraperCapabilities } from './services/types'
@@ -17,6 +18,10 @@ export function setupScraperIPC(): void {
       return await scraperManager.aggregateSearchGames(gameName, options)
     }
   )
+
+  ipcManager.handle('scraper:check-game-version', async (_, gameId: string) => {
+    return await checkGameVersion(gameId)
+  })
 
   ipcManager.handle(
     'scraper:get-game-version',

@@ -8,6 +8,12 @@ import {
   getArchiveStatus,
   runArchiveMaintenance
 } from './services/archiveState'
+import {
+  cancelArchiveBatch,
+  listArchiveBatchJobs,
+  runArchiveBatch
+} from './services/batchRunner'
+import type { ArchiveBatchOp } from '@appTypes/utils'
 
 export function setupArchiveIPC(): void {
   ipcManager.handle('archive:get-status', async (_event, gameId: string) =>
@@ -26,6 +32,18 @@ export function setupArchiveIPC(): void {
   ipcManager.handle('archive:backup-saves', async (_event, gameId: string) =>
     backupSavesNow(gameId)
   )
+
+  ipcManager.handle(
+    'archive:batch-run',
+    async (_event, op: ArchiveBatchOp, gameIds: string[], concurrency?: number) =>
+      runArchiveBatch(op, gameIds, concurrency)
+  )
+
+  ipcManager.handle('archive:batch-cancel', async (_event, jobId: string) =>
+    cancelArchiveBatch(jobId)
+  )
+
+  ipcManager.handle('archive:batch-jobs', async () => listArchiveBatchJobs())
 
   ipcManager.handle('archive:run-maintenance', async () => runArchiveMaintenance())
 

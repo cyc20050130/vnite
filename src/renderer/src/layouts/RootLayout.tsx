@@ -4,7 +4,9 @@ import { Sidebar } from '~/components/Sidebar'
 import { ThemeProvider } from '~/components/ThemeProvider'
 import { Titlebar } from '~/components/Titlebar'
 import { DragContainer } from '~/pages/DragContainer'
+import { ArchiveBatchDialog } from '~/components/ArchiveBatchDialog'
 import { ArchivePasswordDialog } from '~/pages/ArchivePassword'
+import { useArchiveBatchEvents } from '~/stores/archiveBatchStore'
 import { GameAdder } from '~/pages/GameAdder'
 import { GameBatchAdder } from '~/pages/GameBatchAdder'
 import { GameMetadataUpdaterDialog } from '~/pages/GameMetadataUpdater'
@@ -16,6 +18,8 @@ import { Setup } from '~/Setup'
 import { useBackupStore } from '~/stores/utils'
 
 export function RootLayout(): React.JSX.Element {
+  useArchiveBatchEvents()
+
   console.warn('[DEBUG] RootLayout')
   const isBackingUp = useBackupStore((state) => state.isBackingUp)
 
@@ -42,6 +46,7 @@ export function RootLayout(): React.JSX.Element {
       <GameAdder />
       <GameBatchAdder />
       <ArchivePasswordDialog />
+      <ArchiveBatchDialog />
       <Toaster />
       <UpdateDialog />
       <Importer />
