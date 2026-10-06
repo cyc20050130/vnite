@@ -91,6 +91,10 @@ export function BatchGameNavCM({
           <ContextMenuItem onClick={() => onBatch('check-version')}>
             <div>{t('batchEditor.contextMenu.archive.checkVersion')}</div>
           </ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={() => onBatch('resolve-duplicates')}>
+            <div>{t('batchEditor.contextMenu.archive.cleanDuplicates')}</div>
+          </ContextMenuItem>
         </ContextMenuSubContent>
       </ContextMenuSub>
       <ContextMenuSeparator />

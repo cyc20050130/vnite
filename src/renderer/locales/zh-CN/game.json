@@ -4,7 +4,8 @@
       "extract": "批量解压",
       "compress": "批量回压",
       "backupSaves": "批量备份存档",
-      "checkVersion": "批量检查版本"
+      "checkVersion": "批量检查版本",
+      "resolveDuplicates": "批量处理重复压缩包"
     },
     "status": {
       "pending": "等待",
@@ -27,13 +28,15 @@
       "notExtracted": "尚未解压",
       "notFinished": "未标记为已通关",
       "noDataSource": "没有数据源，无法检查版本",
-      "noVersion": "数据源未提供版本"
+      "noVersion": "数据源未提供版本",
+      "noDuplicates": "没有重复压缩包"
     },
     "result": {
       "latest": "已是最新",
       "outdated": "有更新",
       "unknown": "无法比较",
-      "backupFiles": "已备份 {count} 个文件"
+      "backupFiles": "已备份 {count} 个文件",
+      "trashed": "已移入回收站 {count} 个"
     }
   },
   "version": {
@@ -138,7 +141,17 @@
     "dontAskAgain": "以后不再询问",
     "cancel": "取消",
     "confirmCompressAction": "回压",
-    "undoExtract": "重新解压"
+    "undoExtract": "重新解压",
+    "cleanDuplicates": "清理其余",
+    "useThisArchive": "改用这个",
+    "deleteThisArchive": "删除",
+    "duplicateTrashed": "已移入回收站 {count} 个压缩包",
+    "duplicateSwitched": "已切换使用的压缩包",
+    "duplicateError": {
+      "GAME_EXTRACTED": "请先回压当前游戏，再切换压缩包",
+      "ARCHIVE_MISSING": "该压缩包已不存在",
+      "NOT_ARCHIVE_BACKED": "该游戏不是压缩包游戏"
+    }
   },
   "librarybar": {
     "home": "主页",
@@ -866,7 +879,8 @@
         "extract": "批量解压",
         "compress": "批量回压",
         "backupSaves": "批量备份存档",
-        "checkVersion": "批量检查版本"
+        "checkVersion": "批量检查版本",
+        "cleanDuplicates": "处理重复压缩包"
       },
       "updateMetadata": "更新元数据",
       "delete": "删除"

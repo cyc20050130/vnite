@@ -4,7 +4,8 @@
       "extract": "Extract all",
       "compress": "Re-compress all",
       "backupSaves": "Back up saves",
-      "checkVersion": "Check versions"
+      "checkVersion": "Check versions",
+      "resolveDuplicates": "Resolve duplicate archives"
     },
     "status": {
       "pending": "Pending",
@@ -27,13 +28,15 @@
       "notExtracted": "Not extracted",
       "notFinished": "Not marked as finished",
       "noDataSource": "No data source for a version check",
-      "noVersion": "Provider returned no version"
+      "noVersion": "Provider returned no version",
+      "noDuplicates": "No duplicate archives"
     },
     "result": {
       "latest": "Up to date",
       "outdated": "Update available",
       "unknown": "Not comparable",
-      "backupFiles": "{count} file(s) backed up"
+      "backupFiles": "{count} file(s) backed up",
+      "trashed": "{count} moved to the recycle bin"
     }
   },
   "version": {
@@ -138,7 +141,17 @@
     "dontAskAgain": "Do not ask again",
     "cancel": "Cancel",
     "confirmCompressAction": "Re-compress",
-    "undoExtract": "Extract again"
+    "undoExtract": "Extract again",
+    "cleanDuplicates": "Clean up others",
+    "useThisArchive": "Use this one",
+    "deleteThisArchive": "Delete",
+    "duplicateTrashed": "Moved {count} archive(s) to the recycle bin",
+    "duplicateSwitched": "Switched the active archive",
+    "duplicateError": {
+      "GAME_EXTRACTED": "Re-compress this game before switching archives",
+      "ARCHIVE_MISSING": "That archive no longer exists",
+      "NOT_ARCHIVE_BACKED": "This game is not archive-backed"
+    }
   },
   "librarybar": {
     "home": "Home",
@@ -866,7 +879,8 @@
         "extract": "Extract all",
         "compress": "Re-compress all",
         "backupSaves": "Back up saves",
-        "checkVersion": "Check versions"
+        "checkVersion": "Check versions",
+        "cleanDuplicates": "Resolve duplicates"
       },
       "updateMetadata": "Update Metadata",
       "delete": "Batch Delete"

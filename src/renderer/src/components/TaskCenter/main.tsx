@@ -12,7 +12,8 @@ const OP_KEY: Record<ArchiveBatchJob['op'], string> = {
   extract: 'extract',
   compress: 'compress',
   'backup-saves': 'backupSaves',
-  'check-version': 'checkVersion'
+  'check-version': 'checkVersion',
+  'resolve-duplicates': 'resolveDuplicates'
 }
 
 const STATUS_KEY: Record<ArchiveBatchJob['status'], string> = {

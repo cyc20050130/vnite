@@ -299,6 +299,11 @@ type MainIpcEvents =
       ) => ArchiveBatchJob
       'archive:batch-cancel': (jobId: string) => boolean
       'archive:batch-jobs': () => ArchiveBatchJob[]
+      'archive:duplicates-trash': (
+        gameId: string,
+        paths?: string[]
+      ) => { trashed: number; skipped: number }
+      'archive:duplicates-switch': (gameId: string, archivePath: string) => void
       'scraper:check-game-version': (gameId: string) => VersionCheckResult
       'scraper:check-game-exists': (dataSource: string, identifier: ScraperIdentifier) => boolean
       'scraper:get-game-version': (

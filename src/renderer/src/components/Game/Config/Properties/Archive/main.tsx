@@ -126,6 +126,36 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
     }
   }
 
+  const switchArchive = async (archivePath: string): Promise<void> => {
+    setBusy(true)
+    try {
+      await ipcManager.invoke('archive:duplicates-switch', gameId, archivePath)
+      toast.success(t('archivePanel.duplicateSwitched'))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      const known = ['GAME_EXTRACTED', 'ARCHIVE_MISSING', 'NOT_ARCHIVE_BACKED']
+      toast.error(
+        known.includes(message) ? t('archivePanel.duplicateError.' + message) : message
+      )
+    } finally {
+      setBusy(false)
+      await refresh()
+    }
+  }
+
+  const trashDuplicates = async (paths?: string[]): Promise<void> => {
+    setBusy(true)
+    try {
+      const result = await ipcManager.invoke('archive:duplicates-trash', gameId, paths)
+      toast.success(t('archivePanel.duplicateTrashed', { count: result.trashed }))
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error))
+    } finally {
+      setBusy(false)
+      await refresh()
+    }
+  }
+
   const addPassword = async (): Promise<void> => {
     const value = newPassword.trim()
     if (!value) return
@@ -213,16 +243,21 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
 
       {status && status.duplicates.length > 0 ? (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t('archivePanel.duplicates')}</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={busy}
+              onClick={() => void trashDuplicates()}
+            >
+              {t('archivePanel.cleanDuplicates')}
+            </Button>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             <span className="text-muted-foreground">{t('archivePanel.duplicatesHint')}</span>
             {status.duplicates.map((duplicate) => (
-              <div
-                key={duplicate.path}
-                className="flex flex-col gap-1 rounded-md border p-2"
-              >
+              <div key={duplicate.path} className="flex flex-col gap-1 rounded-md border p-2">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">
                     {duplicate.translation || t('archivePanel.unknownVersion')}
@@ -231,6 +266,24 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
                     {duplicate.version || t('archivePanel.unknownVersion')}
                   </Badge>
                   <span className="text-muted-foreground">{formatBytes(duplicate.sizeBytes)}</span>
+                  <div className="ml-auto flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => void switchArchive(duplicate.path)}
+                    >
+                      {t('archivePanel.useThisArchive')}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => void trashDuplicates([duplicate.path])}
+                    >
+                      {t('archivePanel.deleteThisArchive')}
+                    </Button>
+                  </div>
                 </div>
                 <span className="break-all font-mono text-xs">{duplicate.path}</span>
               </div>

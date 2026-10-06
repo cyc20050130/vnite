@@ -14,6 +14,7 @@ import {
   runArchiveBatch
 } from './services/batchRunner'
 import type { ArchiveBatchOp } from '@appTypes/utils'
+import { switchGameArchive, trashDuplicateArchives } from './services/duplicateActions'
 
 export function setupArchiveIPC(): void {
   ipcManager.handle('archive:get-status', async (_event, gameId: string) =>
@@ -44,6 +45,15 @@ export function setupArchiveIPC(): void {
   )
 
   ipcManager.handle('archive:batch-jobs', async () => listArchiveBatchJobs())
+
+  ipcManager.handle('archive:duplicates-trash', async (_event, gameId: string, paths?: string[]) =>
+    trashDuplicateArchives(gameId, paths)
+  )
+
+  ipcManager.handle(
+    'archive:duplicates-switch',
+    async (_event, gameId: string, archivePath: string) => switchGameArchive(gameId, archivePath)
+  )
 
   ipcManager.handle('archive:run-maintenance', async () => runArchiveMaintenance())
 

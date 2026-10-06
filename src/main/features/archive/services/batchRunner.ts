@@ -5,13 +5,15 @@ import { generateUUID } from '@appUtils'
 import type { ArchiveBatchItem, ArchiveBatchJob, ArchiveBatchOp } from '@appTypes/utils'
 import { backupSavesNow, compressGame, ensureExtracted } from './archiveState'
 import { onArchiveProgress } from './batchProgress'
+import { trashDuplicateArchives } from './duplicateActions'
 import { checkGameVersion } from '~/features/scraper/services/versionCheck'
 
 const DEFAULT_CONCURRENCY: Record<ArchiveBatchOp, number> = {
   extract: 2,
   compress: 1,
   'backup-saves': 2,
-  'check-version': 3
+  'check-version': 3,
+  'resolve-duplicates': 1
 }
 
 const jobs = new Map<string, ArchiveBatchJob>()
@@ -77,6 +79,12 @@ async function shouldSkip(op: ArchiveBatchOp, gameId: string): Promise<SkipDecis
         }
       }
       return { skip: false }
+    case 'resolve-duplicates':
+      if (!enabled) return { skip: true, reason: 'notArchiveBacked' }
+      if ((local?.archive?.duplicates ?? []).length === 0) {
+        return { skip: true, reason: 'noDuplicates' }
+      }
+      return { skip: false }
     default:
       return { skip: false }
   }
@@ -99,6 +107,11 @@ async function runItem(op: ArchiveBatchOp, item: ArchiveBatchItem): Promise<stri
       {
         const result = await checkGameVersion(item.gameId)
         return result.status
+      }
+    case 'resolve-duplicates':
+      {
+        const result = await trashDuplicateArchives(item.gameId)
+        return String(result.trashed)
       }
     default:
       return ''

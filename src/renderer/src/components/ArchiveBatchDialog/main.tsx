@@ -12,7 +12,8 @@ const OP_LABEL: Record<ArchiveBatchOp, string> = {
   extract: 'extract',
   compress: 'compress',
   'backup-saves': 'backupSaves',
-  'check-version': 'checkVersion'
+  'check-version': 'checkVersion',
+  'resolve-duplicates': 'resolveDuplicates'
 }
 
 /** Detail values that come from the backend as enum-ish codes. */
@@ -53,7 +54,11 @@ export function ArchiveBatchDialog(): React.JSX.Element | null {
     if (!item.detail) return ''
     const key = DETAIL_KEYS[item.detail]
     if (key) return t('archiveBatch.' + key)
-    if (/^\d+$/.test(item.detail)) return t('archiveBatch.result.backupFiles', { count: item.detail })
+    if (/^\d+$/.test(item.detail)) {
+      return job.op === 'resolve-duplicates'
+        ? t('archiveBatch.result.trashed', { count: item.detail })
+        : t('archiveBatch.result.backupFiles', { count: item.detail })
+    }
     return item.detail
   }
 

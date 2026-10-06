@@ -1,4 +1,9 @@
-export type ArchiveBatchOp = 'extract' | 'compress' | 'backup-saves' | 'check-version'
+export type ArchiveBatchOp =
+  | 'extract'
+  | 'compress'
+  | 'backup-saves'
+  | 'check-version'
+  | 'resolve-duplicates'
 
 export type ArchiveBatchItemStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped'
 
