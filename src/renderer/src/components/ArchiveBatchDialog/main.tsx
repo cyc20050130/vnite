@@ -17,7 +17,7 @@ const OP_LABEL: Record<ArchiveBatchOp, string> = {
   'backup-saves': 'backupSaves',
   'check-version': 'checkVersion',
   'resolve-duplicates': 'resolveDuplicates',
-  'normalize-names': 'normalizeNames'
+  'rename-folders': 'renameFolders'
 }
 
 /** Detail values that come from the backend as enum-ish codes. */
@@ -33,7 +33,13 @@ const DETAIL_KEYS: Record<string, string> = {
   outdated: 'result.outdated',
   unknown: 'result.unknown',
   renamed: 'result.renamed',
-  unchanged: 'result.unchanged'
+  unchanged: 'result.unchanged',
+  noName: 'skipReason.noName',
+  noFolder: 'skipReason.noFolder',
+  exists: 'skipReason.nameExists',
+  locked: 'skipReason.renameLocked',
+  disabled: 'skipReason.renameDisabled',
+  noGame: 'skipReason.unknown'
 }
 
 function statusVariant(status: ArchiveBatchItem['status']): 'secondary' | 'destructive' | 'outline' {

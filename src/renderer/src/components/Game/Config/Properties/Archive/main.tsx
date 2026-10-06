@@ -153,6 +153,24 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
     }
   }
 
+  const renameFolder = async (): Promise<void> => {
+    setBusy(true)
+    try {
+      const result = await ipcManager.invoke('game:rename-folder', gameId)
+      if (result.renamed) {
+        const folderName = result.to.split(/[\\/]/).pop() ?? result.to
+        toast.success(t('archivePanel.renameDone', { name: folderName }))
+      } else {
+        toast.info(t('archivePanel.renameSkipped.' + (result.reason || 'unknown')))
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error))
+    } finally {
+      setBusy(false)
+      await refresh()
+    }
+  }
+
   const targetPath =
     status && status.state === 'extracted' && status.extractDir
       ? status.extractDir
@@ -289,10 +307,10 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => void applySuggestedName()}
+              onClick={() => void renameFolder()}
               disabled={busy}
             >
-              {t('archivePanel.normalizeName')}
+              {t('archivePanel.renameFolder')}
             </Button>
             <Button
               size="sm"

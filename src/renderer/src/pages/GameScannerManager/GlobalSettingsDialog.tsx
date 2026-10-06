@@ -30,7 +30,9 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
   const [aggregateSearch, setAggregateSearch] = useConfigState(
     'game.scraper.common.aggregateSearch'
   )
-  const [nameFromFolder, setNameFromFolder] = useConfigState('game.scraper.common.nameFromFolder')
+  const [renameFolderToName, setRenameFolderToName] = useConfigState(
+    'game.scraper.common.renameFolderToName'
+  )
   const [skipIncomplete, setSkipIncomplete] = useConfigState('game.archive.skipIncomplete')
   const [preserveSaves, setPreserveSaves] = useConfigState('game.archive.preserveSaves')
   const [duplicatePriority, setDuplicatePriority] = useConfigState('game.archive.duplicatePriority')
@@ -156,19 +158,19 @@ export const GlobalSettingsDialog: React.FC<GlobalSettingsDialogProps> = ({ isOp
 
           {/* Use folder name as localized name */}
           <div className={cn('whitespace-nowrap select-none justify-self-start')}>
-            {t('globalSettings.nameFromFolder')}
+            {t('globalSettings.renameFolderToName')}
           </div>
           <Tooltip>
             <TooltipTrigger className={cn('p-0 max-w-none m-0 w-full')}>
               <div>
                 <Switch
-                  checked={Boolean(nameFromFolder)}
-                  onCheckedChange={(value) => void setNameFromFolder(value)}
+                  checked={Boolean(renameFolderToName)}
+                  onCheckedChange={(value) => void setRenameFolderToName(value)}
                 />
               </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" align="start">
-              <div className={cn('text-xs')}>{t('globalSettings.nameFromFolderTooltip')}</div>
+              <div className={cn('text-xs')}>{t('globalSettings.renameFolderToNameTooltip')}</div>
             </TooltipContent>
           </Tooltip>
 

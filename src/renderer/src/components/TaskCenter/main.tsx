@@ -14,7 +14,7 @@ const OP_KEY: Record<ArchiveBatchJob['op'], string> = {
   'backup-saves': 'backupSaves',
   'check-version': 'checkVersion',
   'resolve-duplicates': 'resolveDuplicates',
-  'normalize-names': 'normalizeNames'
+  'rename-folders': 'renameFolders'
 }
 
 const STATUS_KEY: Record<ArchiveBatchJob['status'], string> = {

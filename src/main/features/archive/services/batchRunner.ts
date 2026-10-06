@@ -6,7 +6,7 @@ import type { ArchiveBatchItem, ArchiveBatchJob, ArchiveBatchOp } from '@appType
 import { backupSavesNow, compressGame, ensureExtracted } from './archiveState'
 import { onArchiveProgress } from './batchProgress'
 import { trashDuplicateArchives } from './duplicateActions'
-import { normalizeGameName } from './archiveState'
+import { maybeRenameGameFolder } from '~/features/game/services/rename'
 import { checkGameVersion } from '~/features/scraper/services/versionCheck'
 
 const DEFAULT_CONCURRENCY: Record<ArchiveBatchOp, number> = {
@@ -15,7 +15,7 @@ const DEFAULT_CONCURRENCY: Record<ArchiveBatchOp, number> = {
   'backup-saves': 2,
   'check-version': 3,
   'resolve-duplicates': 1,
-  'normalize-names': 4
+  'rename-folders': 4
 }
 
 const jobs = new Map<string, ArchiveBatchJob>()
@@ -83,7 +83,11 @@ async function shouldSkip(op: ArchiveBatchOp, gameId: string): Promise<SkipDecis
         }
       }
       return { skip: false }
-    case 'normalize-names':
+    case 'rename-folders':
+      {
+        const metadata = await GameDBManager.getGameValue(gameId, 'metadata')
+        if (!metadata?.name) return { skip: true, reason: 'noName' }
+      }
       return { skip: false }
     case 'resolve-duplicates':
       if (!enabled) return { skip: true, reason: 'notArchiveBacked' }
@@ -119,10 +123,10 @@ async function runItem(op: ArchiveBatchOp, item: ArchiveBatchItem): Promise<stri
         const result = await trashDuplicateArchives(item.gameId)
         return String(result.trashed)
       }
-    case 'normalize-names':
+    case 'rename-folders':
       {
-        const result = await normalizeGameName(item.gameId)
-        return result.changed ? 'renamed' : 'unchanged'
+        const result = await maybeRenameGameFolder(item.gameId)
+        return result.reason === 'ok' ? 'renamed' : result.reason
       }
     default:
       return ''

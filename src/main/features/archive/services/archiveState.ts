@@ -21,7 +21,6 @@ import { emitArchiveProgress } from './batchProgress'
 import { classifyArchiveError } from './errorCodes'
 import { pickArchiveEngine } from './engineRegistry'
 import { detectIncompleteArchive } from './incompleteDetect'
-import { parseArchiveName } from './titleResolver'
 import { backupGameSave, searchGameSavePaths } from '~/features/game'
 
 const TMP_SUFFIX = '.vnite-tmp'
@@ -366,53 +365,6 @@ export async function checkIncompleteArchive(gameId: string): Promise<{
   await GameDBManager.setGameLocalValue(gameId, 'archive.incompleteDetail', check.detail)
   await GameDBManager.setGameLocalValue(gameId, 'archive.incompleteCheckedAt', new Date().toISOString())
   return { incomplete: check.incomplete, reason: check.reason, detail: check.detail }
-}
-
-export interface SuggestedName {
-  suggested: string
-  mainTitle: string
-  translation: string
-  source: string
-}
-
-/** Best display name for a game, parsed from its archive / folder name. */
-export async function suggestGameName(gameId: string): Promise<SuggestedName> {
-  const local = await GameDBManager.getGameLocal(gameId)
-  const archivePath = (local.archive?.parts ?? []).find((part) => Boolean(part)) ?? ''
-  const markPath = local.utils?.markPath ?? ''
-  const gamePath = local.path?.gamePath ?? ''
-  const source = archivePath || markPath || (gamePath ? path.dirname(gamePath) : '')
-  const parsed = parseArchiveName(path.basename(source))
-  return {
-    suggested: parsed.translation || parsed.mainTitle || path.basename(source),
-    mainTitle: parsed.mainTitle,
-    translation: parsed.translation,
-    source
-  }
-}
-
-/**
- * Recompute the display name (译名) for a game from its archive / folder name.
- * Only touches names that still mirror the stored localName, so manual edits survive.
- */
-export async function normalizeGameName(
-  gameId: string,
-  force = false
-): Promise<{ changed: boolean; name: string }> {
-  const suggestion = await suggestGameName(gameId)
-  const metadata = await GameDBManager.getGameValue(gameId, 'metadata')
-  const current = metadata?.name ?? ''
-  const localName = metadata?.localName ?? ''
-  if (!suggestion.suggested) return { changed: false, name: current }
-  const isUntouched = !localName || current === localName
-  if (!force && !isUntouched) return { changed: false, name: current }
-  if (current === suggestion.suggested && localName === suggestion.suggested) {
-    return { changed: false, name: current }
-  }
-  await GameDBManager.setGameValue(gameId, 'metadata.name', suggestion.suggested)
-  await GameDBManager.setGameValue(gameId, 'metadata.localName', suggestion.suggested)
-  log.info('[Archive] Normalized name for ' + gameId + ': ' + current + ' -> ' + suggestion.suggested)
-  return { changed: true, name: suggestion.suggested }
 }
 
 /** Manual "back up saves now" entry point for the archive panel. */

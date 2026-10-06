@@ -6,7 +6,8 @@
       "backupSaves": "Back up saves",
       "checkVersion": "Check versions",
       "resolveDuplicates": "Resolve duplicate archives",
-      "normalizeNames": "Recompute names"
+      "normalizeNames": "Recompute names",
+      "renameFolders": "Rename folders to the localized name"
     },
     "status": {
       "pending": "Pending",
@@ -31,7 +32,13 @@
       "noDataSource": "No data source for a version check",
       "noVersion": "Provider returned no version",
       "noDuplicates": "No duplicate archives",
-      "incompleteArchive": "Archive download incomplete"
+      "incompleteArchive": "Archive download incomplete",
+      "noName": "No localized name",
+      "noFolder": "No folder to rename",
+      "nameExists": "Target folder exists",
+      "renameLocked": "Folder in use",
+      "renameDisabled": "Option disabled",
+      "unknown": "Nothing to do"
     },
     "result": {
       "latest": "Up to date",
@@ -198,7 +205,19 @@
     },
     "normalizeName": "Recompute name",
     "nameApplied": "Name updated to {name}",
-    "nameUnchanged": "Name already correct"
+    "nameUnchanged": "Name already correct",
+    "renameFolder": "Rename folder",
+    "renameDone": "Folder renamed to {name}",
+    "renameSkipped": {
+      "unchanged": "Folder already matches the name",
+      "noName": "No localized name to use",
+      "noFolder": "No folder found (archive only)",
+      "exists": "Target folder already exists",
+      "locked": "Folder is in use (game may be running)",
+      "disabled": "The rename option is turned off",
+      "noGame": "Game not found",
+      "unknown": "Nothing to rename"
+    }
   },
   "librarybar": {
     "home": "Home",
@@ -513,6 +532,18 @@
           "error": "Search failed: {{message}}",
           "notFound": "No related information found",
           "searchError": "Search error: {{error}}"
+        },
+        "renameFolder": "Rename folder",
+        "renameDone": "Folder renamed",
+        "renameSkipped": {
+          "unchanged": "Already matches",
+          "noName": "Enter a name first",
+          "noFolder": "No folder found",
+          "exists": "Target folder exists",
+          "locked": "Folder in use",
+          "disabled": "Option disabled",
+          "noGame": "Game not found",
+          "unknown": "Nothing to rename"
         }
       },
       "extraInformation": {
@@ -937,7 +968,8 @@
         "backupSaves": "Back up saves",
         "checkVersion": "Check versions",
         "cleanDuplicates": "Resolve duplicates",
-        "normalizeNames": "Recompute names"
+        "normalizeNames": "Recompute names",
+        "renameFolders": "Rename folders"
       },
       "updateMetadata": "Update Metadata",
       "delete": "Batch Delete"

@@ -30,6 +30,7 @@ import {
   saveGameIconByFile,
   tryUpscaleGameImage
 } from '~/features/game'
+import { maybeRenameGameFolder } from '~/features/game/services/rename'
 import { launcherPreset } from '~/features/launcher'
 import { scraperManager } from '~/features/scraper'
 import { cacheDescriptionImages } from '~/features/scraper/services/descriptionImageCache'
@@ -304,17 +305,9 @@ export async function addGameToDB({
       (sourceType === 'archive' && gamePath
         ? path.basename(gamePath, path.extname(gamePath))
         : path.basename(dirPath || ''))
+    // localName only records where the game came from; the display name (译名) is the
+    // provider's localized name.
     gameDoc.metadata.localName = resolvedLocalName
-    if (resolvedLocalName) {
-      try {
-        const nameFromFolder = await ConfigDBManager.getConfigValue(
-          'game.scraper.common.nameFromFolder'
-        )
-        if (nameFromFolder) gameDoc.metadata.name = resolvedLocalName
-      } catch (error) {
-        log.warn('[Adder] Failed to read nameFromFolder config: ' + String(error))
-      }
-    }
 
     if (playTime) {
       gameDoc.record.playTime = playTime
@@ -589,6 +582,9 @@ export async function addGameToDB({
     // Set the launcher preset (folder games only: the default preset would just
     // shell.openPath the archive for archive-backed games).
     if (gamePath && sourceType !== 'archive') await launcherPreset('default', dbId)
+
+    // Mirror the provider's localized name onto the folder on disk.
+    await maybeRenameGameFolder(dbId)
 
     // Emit event to notify other parts of the application
     eventBus.emit(

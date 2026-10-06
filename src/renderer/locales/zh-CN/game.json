@@ -6,7 +6,8 @@
       "backupSaves": "批量备份存档",
       "checkVersion": "批量检查版本",
       "resolveDuplicates": "批量处理重复压缩包",
-      "normalizeNames": "批量重算译名"
+      "normalizeNames": "批量重算译名",
+      "renameFolders": "批量按译名重命名文件夹"
     },
     "status": {
       "pending": "等待",
@@ -31,7 +32,13 @@
       "noDataSource": "没有数据源，无法检查版本",
       "noVersion": "数据源未提供版本",
       "noDuplicates": "没有重复压缩包",
-      "incompleteArchive": "压缩包未下载完成"
+      "incompleteArchive": "压缩包未下载完成",
+      "noName": "没有译名",
+      "noFolder": "没有可重命名的文件夹",
+      "nameExists": "目标文件夹已存在",
+      "renameLocked": "文件夹被占用",
+      "renameDisabled": "该功能未开启",
+      "unknown": "无需处理"
     },
     "result": {
       "latest": "已是最新",
@@ -198,7 +205,19 @@
     },
     "normalizeName": "重算译名",
     "nameApplied": "译名已更新为 {name}",
-    "nameUnchanged": "译名无需修改"
+    "nameUnchanged": "译名无需修改",
+    "renameFolder": "重命名文件夹",
+    "renameDone": "文件夹已重命名为 {name}",
+    "renameSkipped": {
+      "unchanged": "文件夹名已经是译名，无需修改",
+      "noName": "没有译名，无法重命名",
+      "noFolder": "找不到对应的文件夹（可能只有压缩包）",
+      "exists": "目标文件夹已存在，已跳过",
+      "locked": "文件夹被占用（游戏可能正在运行）",
+      "disabled": "未开启「按译名重命名文件夹」",
+      "noGame": "找不到该游戏",
+      "unknown": "无需重命名"
+    }
   },
   "librarybar": {
     "home": "主页",
@@ -513,6 +532,18 @@
           "error": "搜索失败：{{message}}",
           "notFound": "未找到相关信息",
           "searchError": "搜索错误：{{error}}"
+        },
+        "renameFolder": "重命名文件夹",
+        "renameDone": "文件夹已重命名",
+        "renameSkipped": {
+          "unchanged": "名称已一致",
+          "noName": "请先填写译名",
+          "noFolder": "找不到文件夹",
+          "exists": "目标文件夹已存在",
+          "locked": "文件夹被占用",
+          "disabled": "未开启该功能",
+          "noGame": "找不到该游戏",
+          "unknown": "无需重命名"
         }
       },
       "extraInformation": {
@@ -937,7 +968,8 @@
         "backupSaves": "批量备份存档",
         "checkVersion": "批量检查版本",
         "cleanDuplicates": "处理重复压缩包",
-        "normalizeNames": "重算译名"
+        "normalizeNames": "重算译名",
+        "renameFolders": "按译名重命名文件夹"
       },
       "updateMetadata": "更新元数据",
       "delete": "删除"

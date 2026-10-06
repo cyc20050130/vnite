@@ -68,26 +68,24 @@ export function InformationDialog({
     return last.replace(/\.(rar|zip|7z|001|r\d{2}|part\d+)$/i, '')
   }
 
-  async function applyFolderName(): Promise<void> {
-    // The main process parses the archive / folder name: it strips ordering indexes,
-    // release tags and prefers a Chinese translation found in brackets.
+  /**
+   * Rename the folder on disk so it matches the current 译名. The name shown here comes
+   * from the data source, not from the folder.
+   */
+  async function renameFolderToName(): Promise<void> {
     try {
-      const suggestion = await ipcManager.invoke('archive:suggest-name', gameId)
-      const name = (
-        suggestion.suggested ||
-        localName ||
-        basenameOf(gamePath) ||
-        basenameOf(markPath)
-      ).trim()
-      if (!name) return
-      await getGameStore(gameId).getState().setValue('metadata.name', name)
-      return
-    } catch {
-      // fall through to the plain folder name
+      await saveName()
+      const result = await ipcManager.invoke('game:rename-folder', gameId)
+      if (result.renamed) {
+        toast.success(t('detail.overview.information.renameDone'))
+      } else {
+        toast.info(
+          t('detail.overview.information.renameSkipped.' + (result.reason || 'unknown'))
+        )
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error))
     }
-    const folderName = (localName || basenameOf(gamePath) || basenameOf(markPath)).trim()
-    if (!folderName) return
-    await getGameStore(gameId).getState().setValue('metadata.name', folderName)
   }
 
   async function handleOpenChange(open: boolean): Promise<void> {
@@ -167,10 +165,10 @@ export function InformationDialog({
                   variant="outline"
                   size="sm"
                   className={cn('shrink-0')}
-                  onClick={() => void applyFolderName()}
+                  onClick={() => void renameFolderToName()}
                   disabled={!(localName || gamePath || markPath)}
                 >
-                  <span className={cn('text-xs')}>{t('detail.overview.information.useFolderName')}</span>
+                  <span className={cn('text-xs')}>{t('detail.overview.information.renameFolder')}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

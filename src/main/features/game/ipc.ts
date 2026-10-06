@@ -15,6 +15,7 @@ import {
   hideGameFromRecentGames,
   isBatchStorageSizeCalculationRunning,
   recalculateLastRunDate,
+  renameGameFolderToName,
   restoreGameSave,
   searchGameSavePaths,
   updateGameMemoryCover,
@@ -28,6 +29,10 @@ export function setupGameIPC(): void {
       return await GameDBManager.setGameImage(gameId, type, image)
     }
   )
+
+  ipcManager.handle('game:rename-folder', async (_, gameId: string) => {
+    return await renameGameFolderToName(gameId)
+  })
 
   ipcManager.handle('game:search-save-paths', async (_, gameId: string) => {
     return await searchGameSavePaths(gameId)
