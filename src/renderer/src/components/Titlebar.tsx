@@ -18,6 +18,7 @@ import { cn } from '~/utils'
 import { CloudSyncInfo } from '../pages/Config/CloudSync/Info'
 import { useCloudSyncStore } from '../pages/Config/CloudSync/store'
 import { LibraryTitlebarContent } from './LibraryTitlebarContent'
+import { TaskCenter } from './TaskCenter'
 import { useTheme } from './ThemeProvider'
 
 export function Titlebar(): React.JSX.Element {
@@ -370,6 +371,9 @@ export function Titlebar(): React.JSX.Element {
             </TooltipTrigger>
             <TooltipContent side="bottom">{t('actions.viewLogs')}</TooltipContent>
           </Tooltip>
+
+          {/* Background task list */}
+          <TaskCenter />
 
           {/* Filter controls */}
           {isLibraryRoute &&

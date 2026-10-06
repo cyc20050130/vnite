@@ -58,6 +58,8 @@ export interface configDocs {
       saveVaultPath: string
       /** Which archive wins when several contain the same game. */
       duplicatePriority: 'translation' | 'version'
+      /** Ask before re-compressing (it deletes the extracted folder). */
+      confirmCompress: boolean
     }
     scraper: {
       common: {
@@ -435,7 +437,8 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
       minArchiveSizeMB: 1,
       preserveSaves: true,
       saveVaultPath: '',
-      duplicatePriority: 'translation' as const
+      duplicatePriority: 'translation' as const,
+      confirmCompress: true
     },
     scraper: {
       common: {

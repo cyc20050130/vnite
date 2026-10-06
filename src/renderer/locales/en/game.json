@@ -11,7 +11,8 @@
       "running": "Running",
       "success": "Done",
       "failed": "Failed",
-      "skipped": "Skipped"
+      "skipped": "Skipped",
+      "cancelled": "Cancelled"
     },
     "summary": "{done}/{total} done, {failed} failed, {skipped} skipped",
     "concurrency": "Concurrency {count}",
@@ -70,10 +71,10 @@
     }
   },
   "archivePassword": {
-    "title": "Archive password required",
-    "hint": "These archives need a password. Paste one password per line; they will be tried in order and extraction retried automatically.",
+    "title": "Password required",
+    "hint": "Queued games are retried automatically",
     "placeholder": "One password per line",
-    "submit": "Add and retry",
+    "submit": "Submit and retry",
     "close": "Close",
     "ignore": "Ignore",
     "empty": "Enter at least one password",
@@ -81,7 +82,12 @@
     "headerEncrypted": "Header encrypted",
     "dataEncrypted": "Data encrypted",
     "retried": "Extracted {{count}} archive(s)",
-    "stillFailing": "{{count}} still failing"
+    "stillFailing": "{{count}} still failing",
+    "collapsed": "{count} waiting for a password",
+    "collapse": "Collapse",
+    "done": "All extracted",
+    "partial": "{count} still locked",
+    "saved": "Passwords saved to the vault"
   },
   "archivePanel": {
     "saves": "Saves",
@@ -126,7 +132,13 @@
     "passwordAdded": "Password added",
     "extractDone": "Extraction finished",
     "compressDone": "Re-compression finished",
-    "needPassword": "Password required - add it in the password vault and retry"
+    "needPassword": "Password required - add it in the password vault and retry",
+    "confirmCompressTitle": "Re-compress this game?",
+    "confirmCompressBody": "Re-compressing deletes the extracted folder (saves are backed up automatically) and writes a new archive.",
+    "dontAskAgain": "Do not ask again",
+    "cancel": "Cancel",
+    "confirmCompressAction": "Re-compress",
+    "undoExtract": "Extract again"
   },
   "librarybar": {
     "home": "Home",
@@ -849,14 +861,14 @@
       "removeFrom": "Batch Remove From",
       "newCollection": "New Collection",
       "editInfo": "Batch Edit Game Info",
-            "archive": {
+      "archive": {
         "title": "Archives",
         "extract": "Extract all",
         "compress": "Re-compress all",
         "backupSaves": "Back up saves",
         "checkVersion": "Check versions"
       },
-"updateMetadata": "Update Metadata",
+      "updateMetadata": "Update Metadata",
       "delete": "Batch Delete"
     },
     "information": {
@@ -988,5 +1000,10 @@
       "noDataSources": "No compatible data sources found"
     },
     "unknown": "Unknown error"
+  },
+  "taskCenter": {
+    "title": "Background tasks",
+    "empty": "No tasks yet",
+    "counts": "{done}/{total} done, {failed} failed"
   }
 }

@@ -1,6 +1,8 @@
 import { Badge } from '@ui/badge'
 import { Button } from '@ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/card'
+import { Checkbox } from '@ui/checkbox'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@ui/dialog'
 import { Input } from '@ui/input'
 import { Progress } from '@ui/progress'
 import { Separator } from '@ui/separator'
@@ -10,7 +12,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { ipcManager } from '~/app/ipc'
-import { useGameLocalState } from '~/hooks'
+import { useConfigState, useGameLocalState } from '~/hooks'
 
 function formatBytes(value: number): string {
   if (!value || value <= 0) return '-'
@@ -49,6 +51,9 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
   const [passwords, setPasswords] = useState<ArchivePasswordEntry[]>([])
   const [newPassword, setNewPassword] = useState('')
   const [keepArchive, setKeepArchive] = useGameLocalState(gameId, 'archive.keepArchive')
+  const [confirmCompress, setConfirmCompress] = useConfigState('game.archive.confirmCompress')
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [dontAskAgain, setDontAskAgain] = useState(false)
 
   const backupSaves = useCallback(async (): Promise<void> => {
     try {
@@ -104,7 +109,12 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
         toast.success(t('archivePanel.extractDone'))
       } else {
         await ipcManager.invoke('archive:compress', gameId)
-        toast.success(t('archivePanel.compressDone'))
+        toast.success(t('archivePanel.compressDone'), {
+          action: {
+            label: t('archivePanel.undoExtract'),
+            onClick: () => void run('extract')
+          }
+        })
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
@@ -148,7 +158,7 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
             <Button
               size="sm"
               variant="secondary"
-              onClick={() => void run('compress')}
+              onClick={() => (confirmCompress === false ? void run('compress') : setConfirmOpen(true))}
               disabled={busy || status?.state !== 'extracted'}
             >
               {t('archivePanel.compress')}
@@ -271,6 +281,37 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
           ))}
         </CardContent>
       </Card>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="w-[420px]">
+          <DialogHeader>
+            <DialogTitle>{t('archivePanel.confirmCompressTitle')}</DialogTitle>
+            <DialogDescription>{t('archivePanel.confirmCompressBody')}</DialogDescription>
+          </DialogHeader>
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={dontAskAgain}
+              onCheckedChange={(value) => setDontAskAgain(Boolean(value))}
+            />
+            {t('archivePanel.dontAskAgain')}
+          </label>
+          <DialogFooter className="flex-row justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setConfirmOpen(false)}>
+              {t('archivePanel.cancel')}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                if (dontAskAgain) void setConfirmCompress(false)
+                setConfirmOpen(false)
+                void run('compress')
+              }}
+            >
+              {t('archivePanel.confirmCompressAction')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

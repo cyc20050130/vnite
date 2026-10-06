@@ -11,7 +11,8 @@
       "running": "进行中",
       "success": "成功",
       "failed": "失败",
-      "skipped": "跳过"
+      "skipped": "跳过",
+      "cancelled": "已取消"
     },
     "summary": "完成 {done}/{total}，失败 {failed}，跳过 {skipped}",
     "concurrency": "并发 {count}",
@@ -70,18 +71,23 @@
     }
   },
   "archivePassword": {
-    "title": "需要压缩包密码",
-    "hint": "以下压缩包需要密码才能解压。每行一个密码粘贴进来，会自动依次尝试并重试。",
-    "placeholder": "每行一个密码",
-    "submit": "添加并重试",
+    "title": "需要解压密码",
+    "hint": "会自动重试队列中的游戏",
+    "placeholder": "每行一个密码，可一次填多个",
+    "submit": "提交并重试",
     "close": "关闭",
     "ignore": "忽略",
-    "empty": "请先输入至少一个密码",
+    "empty": "请输入至少一个密码",
     "tried": "已尝试 {{count}} 个密码",
     "headerEncrypted": "仅加密文件表",
     "dataEncrypted": "加密数据",
     "retried": "已成功解压 {{count}} 个",
-    "stillFailing": "仍有 {{count}} 个失败"
+    "stillFailing": "仍有 {{count}} 个失败",
+    "collapsed": "待补密码 {count}",
+    "collapse": "收起",
+    "done": "已全部解开",
+    "partial": "{count} 个仍未解开",
+    "saved": "密码已保存到密码库"
   },
   "archivePanel": {
     "saves": "存档",
@@ -126,7 +132,13 @@
     "passwordAdded": "密码已添加",
     "extractDone": "解压完成",
     "compressDone": "回压完成",
-    "needPassword": "需要密码，请在密码库中添加后重试"
+    "needPassword": "需要密码，请在密码库中添加后重试",
+    "confirmCompressTitle": "确认回压？",
+    "confirmCompressBody": "回压会删除已解压的游戏目录（存档已自动备份），并生成新的压缩包。",
+    "dontAskAgain": "以后不再询问",
+    "cancel": "取消",
+    "confirmCompressAction": "回压",
+    "undoExtract": "重新解压"
   },
   "librarybar": {
     "home": "主页",
@@ -849,14 +861,14 @@
       "removeFrom": "移除出",
       "newCollection": "新收藏",
       "editInfo": "编辑信息",
-            "archive": {
+      "archive": {
         "title": "压缩包",
         "extract": "批量解压",
         "compress": "批量回压",
         "backupSaves": "批量备份存档",
         "checkVersion": "批量检查版本"
       },
-"updateMetadata": "更新元数据",
+      "updateMetadata": "更新元数据",
       "delete": "删除"
     },
     "information": {
@@ -988,5 +1000,10 @@
       "noDataSources": "没有找到兼容的数据源"
     },
     "unknown": "未知错误"
+  },
+  "taskCenter": {
+    "title": "后台任务",
+    "empty": "暂无任务",
+    "counts": "完成 {done}/{total}，失败 {failed}"
   }
 }
