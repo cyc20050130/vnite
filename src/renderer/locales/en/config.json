@@ -602,5 +602,9 @@
       "bypassRules": "Bypass Rules",
       "bypassRulesDescription": "List of addresses that do not connect through the proxy server, separated by commas\nExample: .foobar.com,*test.com,192.168.1.1/16,<local>\n<local> represents local addresses (127.0.0.1 or localhost)"
     }
+  },
+  "pluginSections": {
+    "refresh": "Refresh",
+    "empty": "The plugin returned no data"
   }
 }

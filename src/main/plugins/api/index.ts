@@ -2,7 +2,7 @@ import { ConfigDBManager, GameDBManager, PluginDBManager } from '~/core/database
 import { eventBus } from '~/core/events'
 import { ipcManager } from '~/core/ipc'
 import { scraperManager } from '~/features/scraper/services/ScraperManager'
-import { registerAction, registerMenu } from '../contributions'
+import { registerAction, registerMenu, registerPanel } from '../contributions'
 
 export class VnitePluginAPI {
   public readonly pluginId: string
@@ -23,6 +23,20 @@ export class VnitePluginAPI {
     },
     action: (id: string, handler: (payload: unknown) => Promise<void> | void): void => {
       registerAction(this.pluginId, id, handler)
+    },
+    card: (item: {
+      id: string
+      title: string
+      load: () => Promise<{ label: string; value: string }[]> | { label: string; value: string }[]
+    }): void => {
+      registerPanel(this.pluginId, { ...item, kind: 'card' })
+    },
+    section: (item: {
+      id: string
+      title: string
+      load: () => Promise<{ label: string; value: string }[]> | { label: string; value: string }[]
+    }): void => {
+      registerPanel(this.pluginId, { ...item, kind: 'section' })
     }
   }
 

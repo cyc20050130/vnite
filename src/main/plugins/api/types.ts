@@ -23,6 +23,18 @@ export interface IPluginContributesAPI {
   menu(item: { id: string; label: string; context?: 'game' | 'batch' }): void
   /** Handle clicks of the menu entry with the same id. */
   action(id: string, handler: (payload: unknown) => Promise<void> | void): void
+  /** Read-only card on the game overview page (label/value rows). */
+  card(item: {
+    id: string
+    title: string
+    load: () => Promise<{ label: string; value: string }[]> | { label: string; value: string }[]
+  }): void
+  /** Read-only section on the settings page. */
+  section(item: {
+    id: string
+    title: string
+    load: () => Promise<{ label: string; value: string }[]> | { label: string; value: string }[]
+  }): void
 }
 
 import { ConfigDBManager, GameDBManager } from '~/core/database'

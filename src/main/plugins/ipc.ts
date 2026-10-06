@@ -1,11 +1,26 @@
 import { ipcManager } from '~/core/ipc'
 import { pluginService } from './services'
 import { PluginInstallOptions, PluginSearchOptions } from '@appTypes/plugin'
-import { invokeMenu, listMenus, type PluginMenuContext } from './contributions'
+import {
+  invokeMenu,
+  listMenus,
+  listPanels,
+  loadPanel,
+  type PluginMenuContext,
+  type PluginPanelKind
+} from './contributions'
 
 export function setupPluginIPC(): void {
   ipcManager.handle('plugin:list-menu-contributions', async (_, context: PluginMenuContext) => {
     return listMenus(context)
+  })
+
+  ipcManager.handle('plugin:list-panels', async (_, kind: PluginPanelKind) => {
+    return listPanels(kind)
+  })
+
+  ipcManager.handle('plugin:load-panel', async (_, id: string) => {
+    return await loadPanel(id)
   })
 
   ipcManager.handle(

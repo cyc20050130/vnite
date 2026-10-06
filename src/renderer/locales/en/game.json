@@ -1115,5 +1115,9 @@
     "title": "Background tasks",
     "empty": "No tasks yet",
     "counts": "{done}/{total} done, {failed} failed"
+  },
+  "pluginCards": {
+    "refresh": "Refresh",
+    "empty": "The plugin returned no data"
   }
 }

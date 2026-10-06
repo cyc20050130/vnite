@@ -7,6 +7,7 @@ import { RecommendedGamesCard } from './RecommendedGames'
 import { RelatedSites } from './RelatedSites'
 import { Tags } from './Tags'
 import { Version } from './Version'
+import { PluginPanels } from '~/components/PluginPanels'
 
 export function Overview({ gameId }: { gameId: string }): React.JSX.Element {
   return (
@@ -27,6 +28,7 @@ export function Overview({ gameId }: { gameId: string }): React.JSX.Element {
       <div className={cn('flex flex-col gap-5', 'col-span-1')}>
         <Information gameId={gameId} />
         <Version gameId={gameId} />
+        <PluginPanels kind="card" />
         <ExtraInformation gameId={gameId} />
         <RecommendedGamesCard gameId={gameId} />
         <RelatedSites gameId={gameId} />

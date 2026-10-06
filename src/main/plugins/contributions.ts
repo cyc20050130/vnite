@@ -46,6 +46,48 @@ export function registerAction(pluginId: string, actionId: string, handler: Acti
   actions.set(keyOf(pluginId, actionId), handler)
 }
 
+export type PluginPanelKind = 'card' | 'section'
+
+export interface PluginPanelContribution {
+  id: string
+  pluginId: string
+  title: string
+  kind: PluginPanelKind
+}
+
+/** Row shape a panel returns; kept JSON-serialisable so the renderer can show it. */
+export type PluginPanelRow = { label: string; value: string }
+
+type PanelLoader = () => Promise<PluginPanelRow[]> | PluginPanelRow[]
+
+const panels = new Map<string, PluginPanelContribution>()
+const panelLoaders = new Map<string, PanelLoader>()
+
+export function registerPanel(
+  pluginId: string,
+  item: { id: string; title: string; kind?: PluginPanelKind; load: PanelLoader }
+): void {
+  if (!item?.id || !item?.title || typeof item.load !== 'function') return
+  const key = keyOf(pluginId, item.id)
+  panels.set(key, { id: key, pluginId, title: item.title, kind: item.kind ?? 'card' })
+  panelLoaders.set(key, item.load)
+  log.info('[Plugin] Panel contribution registered: ' + key)
+}
+
+export function listPanels(kind: PluginPanelKind): PluginPanelContribution[] {
+  return [...panels.values()].filter((entry) => entry.kind === kind)
+}
+
+export async function loadPanel(id: string): Promise<PluginPanelRow[]> {
+  const loader = panelLoaders.get(id)
+  if (!loader) throw new Error('NO_PLUGIN_PANEL')
+  const rows = await loader()
+  return (Array.isArray(rows) ? rows : []).slice(0, 50).map((row) => ({
+    label: String(row?.label ?? ''),
+    value: String(row?.value ?? '')
+  }))
+}
+
 export function listMenus(context: PluginMenuContext): PluginMenuContribution[] {
   return [...menus.values()].filter((entry) => entry.context === context)
 }
@@ -62,5 +104,11 @@ export function clearPluginContributions(pluginId: string): void {
   }
   for (const key of [...actions.keys()]) {
     if (key.startsWith(pluginId + ':')) actions.delete(key)
+  }
+  for (const key of [...panels.keys()]) {
+    if (key.startsWith(pluginId + ':')) panels.delete(key)
+  }
+  for (const key of [...panelLoaders.keys()]) {
+    if (key.startsWith(pluginId + ':')) panelLoaders.delete(key)
   }
 }

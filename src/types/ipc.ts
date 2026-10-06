@@ -322,6 +322,10 @@ type MainIpcEvents =
         id: string,
         payload: unknown
       ) => { success: boolean; error?: string }
+      'plugin:list-panels': (
+        kind: 'card' | 'section'
+      ) => { id: string; pluginId: string; title: string; kind: 'card' | 'section' }[]
+      'plugin:load-panel': (id: string) => { label: string; value: string }[]
       'scraper:check-game-version': (gameId: string) => VersionCheckResult
       'scraper:check-game-exists': (dataSource: string, identifier: ScraperIdentifier) => boolean
       'scraper:get-game-version': (

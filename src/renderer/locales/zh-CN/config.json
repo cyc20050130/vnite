@@ -602,5 +602,9 @@
       "bypassRules": "绕过规则",
       "bypassRulesDescription": "不通过代理服务器连接的地址列表，使用逗号分隔\n如：.foobar.com,*test.com,192.168.1.1/16,<local>\n<local>代表本地地址(127.0.0.1或localhost)"
     }
+  },
+  "pluginSections": {
+    "refresh": "刷新",
+    "empty": "插件没有提供数据"
   }
 }

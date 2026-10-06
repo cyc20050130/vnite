@@ -1115,5 +1115,9 @@
     "title": "后台任务",
     "empty": "暂无任务",
     "counts": "完成 {done}/{total}，失败 {failed}"
+  },
+  "pluginCards": {
+    "refresh": "刷新",
+    "empty": "插件没有提供数据"
   }
 }

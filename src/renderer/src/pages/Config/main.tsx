@@ -15,6 +15,7 @@ import { Network } from './Network'
 import { Scraper } from './Scraper'
 import { ConfigTab, useConfigTabStore } from './store'
 import { Theme } from './Theme'
+import { PluginPanels } from '~/components/PluginPanels'
 
 export function Config({ className }: { className?: string }): React.JSX.Element {
   const { t } = useTranslation('config')
@@ -68,6 +69,7 @@ export function Config({ className }: { className?: string }): React.JSX.Element
 
             <TabsContent value="advanced">
               <Advanced />
+              <PluginPanels kind="section" />
             </TabsContent>
 
             <TabsContent value="metadata">
