@@ -168,6 +168,15 @@ export function Filter({ children }: { children: React.ReactNode }): React.JSX.E
                   placeholder={t('filter.panel.playStatus')}
                 />
               </div>
+              {/* Archive state */}
+              <div className={cn('flex flex-col gap-1 items-start justify-start')}>
+                <div className={cn('flex flex-row justify-between items-center w-full')}>
+                  <div className={cn('whitespace-nowrap text-sm text-foreground ml-[6px]')}>
+                    {t('filter.panel.archiveState')}
+                  </div>
+                </div>
+                <FilterCombobox field="archive.state" placeholder={t('filter.panel.archiveState')} />
+              </div>
               {/* Developers */}
               <div className={cn('flex flex-col gap-1 items-start justify-start')}>
                 <div className={cn('flex flex-row justify-between items-center w-full')}>

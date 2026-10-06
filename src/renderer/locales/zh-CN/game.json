@@ -251,7 +251,16 @@
       "storageSizeMin": "最小",
       "storageSizeMax": "最大",
       "mib": "MiB",
-      "gib": "GiB"
+      "gib": "GiB",
+      "archiveState": "压缩包状态",
+      "archiveStateValues": {
+        "notArchiveBacked": "非压缩包游戏",
+        "archived": "已回压（未解压）",
+        "extracted": "已解压",
+        "passwordRequired": "待补密码",
+        "error": "出错",
+        "hasDuplicates": "有重复压缩包"
+      }
     },
     "combobox": {
       "select": "选择{{placeholder}}",

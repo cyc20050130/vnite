@@ -251,7 +251,16 @@
       "storageSizeMin": "Min",
       "storageSizeMax": "Max",
       "mib": "MiB",
-      "gib": "GiB"
+      "gib": "GiB",
+      "archiveState": "Archive state",
+      "archiveStateValues": {
+        "notArchiveBacked": "Not archive-backed",
+        "archived": "Archived (not extracted)",
+        "extracted": "Extracted",
+        "passwordRequired": "Password required",
+        "error": "Error",
+        "hasDuplicates": "Has duplicates"
+      }
     },
     "combobox": {
       "select": "Select {{placeholder}}",

@@ -17,6 +17,7 @@ import {
   splitTimeRangeByBusinessDay
 } from './dayBoundaryUtils'
 import { useGameRegistry } from './gameRegistry'
+import { getGameLocalStore } from './gameLocalStoreFactory'
 import { getGameStore } from './gameStoreFactory'
 import { useGameCollectionStore } from './useGameCollectionStore'
 
@@ -35,6 +36,25 @@ function resolveGameRecordCalculationSource(
   return {
     timers: store.getState().getValue('record.timers') || [],
     dailyPlayTimes: store.getState().getValue('record.dailyPlayTimes') || []
+  }
+}
+
+/**
+ * Filter values describing a game's archive situation (stored in the local document).
+ * Returns null while the local store is not loaded yet, so an unknown game is never
+ * filtered out by mistake.
+ */
+export function getArchiveFilterValues(gameId: string): string[] | null {
+  try {
+    const state = getGameLocalStore(gameId).getState()
+    if (!state.initialized || !state.data) return null
+    const archive = state.data.archive
+    if (!archive?.enabled) return ['notArchiveBacked']
+    const values = [archive.state || 'archived']
+    if ((archive.duplicates ?? []).length > 0) values.push('hasDuplicates')
+    return values
+  } catch {
+    return null
   }
 }
 
@@ -285,6 +305,21 @@ export function filterGames(
             if (!Array.isArray(values) || values.length === 0) continue
             const allowEmpty = values.includes('__empty__')
             const matchMode = getFilterMatchMode(path)
+
+            // Archive state lives in the local document instead of gameDoc.
+            if (path === 'archive.state') {
+              const archiveValues = getArchiveFilterValues(gameId)
+              // Not loaded yet: keep the game instead of hiding it.
+              if (!archiveValues) continue
+              const matched = archiveValues.some((item) =>
+                matchesFilterValue(item, values, matchMode)
+              )
+              if (!matched) {
+                matchesAllCriteria = false
+                break
+              }
+              continue
+            }
 
             // Handling paths in metadata.extra.xxx format
             if (path.startsWith('metadata.extra.')) {
@@ -566,6 +601,9 @@ export function getAllValuesInKey<Path extends Paths<gameDoc, { bracketNotation:
   path: Path,
   gameIds?: readonly string[]
 ): string[] {
+  if ((path as string) === 'archive.state') {
+    return ['notArchiveBacked', 'archived', 'extracted', 'passwordRequired', 'error', 'hasDuplicates']
+  }
   try {
     const sourceGameIds = gameIds ? [...gameIds] : useGameRegistry.getState().gameIds
     const values = new Set<string>()

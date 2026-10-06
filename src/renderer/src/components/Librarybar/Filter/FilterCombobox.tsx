@@ -51,7 +51,9 @@ export function FilterCombobox({
       label:
         field === 'record.playStatus'
           ? t(`utils:game.playStatus.${value}`) // Translate play status
-          : value
+          : field === 'archive.state'
+            ? t(`filter.panel.archiveStateValues.${value}`)
+            : value
     }))
 
     // Sort: selected items appear first
