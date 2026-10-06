@@ -558,8 +558,6 @@ export class GameScanner extends EventEmitter {
         const searchName = normalizeFolderName
           ? this.normalizeFolderName(parsedName.mainTitle)
           : parsedName.mainTitle
-        // 译名：优先使用括号/下划线里的中文，否则退回清洗后的原标题。
-        const displayName = parsedName.translation || parsedName.mainTitle
         const fallbackSearch =
           parsedName.translation && parsedName.translation !== searchName
             ? parsedName.translation
@@ -681,8 +679,8 @@ export class GameScanner extends EventEmitter {
             sourceType: entryKind === 'archive' ? 'archive' : 'folder',
             archive: archiveInfo,
             version,
-            // 译名：优先使用解析出的中文译名，否则用清洗后的标题。
-            localName: displayName,
+            // localName 只记录来源文件夹/压缩包名；译名由数据源提供。
+            localName: rawName,
             duplicates: entryKind === 'archive' ? duplicateInfos : undefined,
             upscaleEnabled: upscaleScale > 0,
             upscaleOptionsOverride: upscaleScale > 0 ? { scale: upscaleScale } : undefined,

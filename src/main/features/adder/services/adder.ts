@@ -306,8 +306,11 @@ export async function addGameToDB({
         ? path.basename(gamePath, path.extname(gamePath))
         : path.basename(dirPath || ''))
     // localName only records where the game came from; the display name (译名) is the
-    // provider's localized name.
+    // provider's localized name. Fall back to the local name only when the provider had none.
     gameDoc.metadata.localName = resolvedLocalName
+    if (!gameDoc.metadata.name && resolvedLocalName) {
+      gameDoc.metadata.name = resolvedLocalName
+    }
 
     if (playTime) {
       gameDoc.record.playTime = playTime
