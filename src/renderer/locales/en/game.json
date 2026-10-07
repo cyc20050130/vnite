@@ -1056,7 +1056,7 @@
     },
     "cleanDuplicates": {
       "title": "Clean duplicate archives?",
-      "description": "Compare the selected games again and move the worse copy (worse Chinese translation, older version, or Android only) to the recycle bin. It can be restored at any time.",
+      "description": "Compare the selected games again and move the worse copy to the recycle bin (restorable): a pure PC copy outranks a KR one, then version and translation quality. It can be restored at any time.",
       "confirm": "Clean",
       "cancel": "Cancel"
     }

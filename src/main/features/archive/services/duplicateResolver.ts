@@ -50,6 +50,8 @@ export function detectPlatform(name: string): PlatformInfo {
     /(电脑|windows|steam版|硬盘版)/i.test(name) ||
     /[［【\[][pP][cC][］】\]]/.test(name)
   const android = /.apk$/i.test(lower) || /(^|[^a-z])apk([^a-z]|$)/i.test(lower)
+  // Name-only, and with word boundaries: "【PC＋KR】" / "xxx_kr.zip" match, while the KiriKiri
+  // plugin names (krmovie.dll, krkr*.dll) inside a path do not.
   const korean = /(^|[^a-z])kr([^a-z]|$)/i.test(lower) || /(korea|한국|韩|韓)/i.test(name)
   // No marker at all means the normal PC release; an Android OR Korean marker without an
   // explicit PC marker means the package is not the PC build we want to keep.
@@ -217,6 +219,10 @@ export function compareCandidates(
   b: EvaluatedArchive,
   priority: DuplicatePriority
 ): number {
+  // A Korean release ranks below a pure PC release even when it is newer or better translated:
+  // that is the whole point of the rule. Only the package name is used for this, so a KiriKiri
+  // plugin such as krmovie.dll can never mark a game as Korean.
+  if (a.platform.korean !== b.platform.korean) return a.platform.korean ? 1 : -1
   // A PC build always beats an Android-only build: an APK can be several GB and would
   // otherwise win on size alone. Everything below only compares equal platforms.
   if (a.platform.pc !== b.platform.pc) return a.platform.pc ? -1 : 1
@@ -270,8 +276,10 @@ export async function planArchiveGroups<T extends ArchiveCandidateInput>(
       passthrough.push(candidate)
       continue
     }
-    // A pure Android / Korean release is not a candidate for "which copy is better".
-    if (!platform.pc && (platform.android || platform.korean)) {
+    // A pure Android release is removed outright. A Korean release is NOT deleted: it stays
+    // in the review and simply ranks below a pure PC copy (see compareCandidates). The
+    // "korean" flag comes from the package NAME only, never from an entry inside it.
+    if (!platform.pc && platform.android) {
       disposable.push(candidate)
       continue
     }

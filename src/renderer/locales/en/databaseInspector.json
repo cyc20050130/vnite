@@ -90,7 +90,7 @@
   },
   "duplicates": {
     "title": "Duplicate archives",
-    "description": "Several archives of the same game, grouped while scanning. Cleaning moves the worse copy (worse Chinese translation / older version / Android only) to the recycle bin.",
+    "description": "Several archives of the same game, grouped while scanning. Cleaning moves the worse copy to the recycle bin (restorable): a pure PC copy outranks a KR one, then the newer version wins, then the better Chinese translation. File size is not a criterion.",
     "summary": "{{files}} files / {{size}}",
     "cleanAll": "Clean all",
     "cleanOne": "Clean",
