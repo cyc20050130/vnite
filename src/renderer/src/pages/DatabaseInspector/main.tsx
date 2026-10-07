@@ -12,6 +12,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@ui/chart'
 import { ScrollArea } from '@ui/scroll-area'
 import { ScrollToTopButton } from '~/components/Showcase/ScrollToTopButton'
 import { cn, formatStorageSize } from '~/utils'
+import { ArchiveDuplicatesCard } from './ArchiveDuplicatesCard'
 import { DatabaseInspectorGameTable } from './GameTable'
 import { DatabaseInspectorMetricCard } from './MetricCard'
 import {
@@ -319,6 +320,8 @@ export function DatabaseInspector(): React.JSX.Element {
               })}
             />
           )}
+
+          <ArchiveDuplicatesCard />
 
           {pageContent}
         </div>

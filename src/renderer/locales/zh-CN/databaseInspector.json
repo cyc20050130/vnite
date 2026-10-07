@@ -87,5 +87,15 @@
     "descriptionImage": "简介缓存",
     "media": "媒体资源",
     "other": "其他"
+  },
+  "duplicates": {
+    "title": "重复压缩包",
+    "description": "扫描时按同名判定出的同一游戏多份压缩包。清理会把较差的那一份（只有安卓版 / 版本更旧 / 体积更小）移到回收站，可随时还原。",
+    "summary": "{{files}} 份 / {{size}}",
+    "cleanAll": "全部清理",
+    "cleanOne": "清理",
+    "empty": "没有发现重复压缩包",
+    "count": "{{count}} 份",
+    "showMore": "还有 {{count}} 个…"
   }
 }
