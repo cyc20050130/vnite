@@ -111,6 +111,35 @@ export function scoreTranslation(name: string): { score: number; label: string }
   return { score: 0, label: '原版' }
 }
 
+/**
+ * Classify one entry inside an archive as Android or Korean content.
+ *
+ * Deliberately strict: only an ".apk" file, a path segment that is exactly a platform /
+ * language marker, or a segment carrying an explicit _kr / -kr / .kr marker counts. Anything
+ * ambiguous returns '' so a wrong guess can never delete a playable file.
+ */
+export function classifyArchiveEntry(entryPath: string): 'android' | 'korean' | '' {
+  const parts = (entryPath || '').split(/[\\/]+/).filter(Boolean)
+  for (const part of parts) {
+    const lower = part.toLowerCase()
+    if (lower.endsWith('.apk')) return 'android'
+    if (lower === 'android' || lower === 'apk' || lower === '安卓') return 'android'
+    if (
+      lower === 'kr' ||
+      lower === 'ko' ||
+      lower === 'korea' ||
+      lower === 'korean' ||
+      lower === '한국' ||
+      lower === '韩' ||
+      lower === '韓'
+    ) {
+      return 'korean'
+    }
+    if (/(^|[._-])(kr|ko)([._-]|$)/.test(lower) || /(韩|韓)/.test(part)) return 'korean'
+  }
+  return ''
+}
+
 /** Version-independent, translation-independent key used to spot the same game. */
 export function normalizeTitleKey(name: string): string {
   const withoutExtension = name

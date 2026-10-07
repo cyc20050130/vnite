@@ -31,7 +31,11 @@ async function sumPaths(paths: string[]): Promise<number> {
   return total
 }
 import { guessVersion, parseArchiveName } from '~/features/archive/services/titleResolver'
-import { planArchiveGroups, type DuplicateInfo } from '~/features/archive/services/duplicateResolver'
+import {
+  classifyArchiveEntry,
+  planArchiveGroups,
+  type DuplicateInfo
+} from '~/features/archive/services/duplicateResolver'
 import {
   collectArchiveVolumes,
   mergeArchiveDuplicates,
@@ -763,6 +767,36 @@ export class GameScanner extends EventEmitter {
 
           // Never import a game the user already asked us to stop for.
           if (!this.isActive()) return
+
+          // Content-level pruning (dry run): when the package name suggests PC+KR or a
+          // bundled Android build, list it and report what the detection would remove.
+          // Nothing is deleted here - the removal itself is a separate, confirmed step.
+          if (entryKind === 'archive' && /apk|\bkr\b|韩|韓/i.test(path.basename(gamePath ?? ''))) {
+            try {
+              const listing = await listArchive(gamePath ?? '')
+              const found: Record<string, string[]> = { android: [], korean: [] }
+              for (const entry of listing.entries ?? []) {
+                const entryPath = entry.path ?? ''
+                const kind = classifyArchiveEntry(entryPath)
+                if (kind) found[kind].push(entryPath)
+              }
+              const total = found.android.length + found.korean.length
+              if (total > 0) {
+                log.info(
+                  '[Scanner] Foreign content in ' +
+                    path.basename(gamePath ?? '') +
+                    ': android=' +
+                    found.android.length +
+                    ' korean=' +
+                    found.korean.length +
+                    ' -> ' +
+                    [...found.android, ...found.korean].slice(0, 8).join(', ')
+                )
+              }
+            } catch (error) {
+              log.warn('[Scanner] Could not inspect ' + gamePath + ': ' + String(error))
+            }
+          }
 
           const dbId = await addGameToDB({
             dataSource: match.source ?? dataSource,
