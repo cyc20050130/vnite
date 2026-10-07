@@ -423,6 +423,7 @@ type MainIpcEvents =
         interval: number | null
       }
       'scanner:request-progress': () => OverallScanProgress
+      'scanner:purge-folder': (folderPath: string) => number
       'scanner:ignore-failed-folder': (scannerId: string, folderPath: string) => OverallScanProgress
 
       // Plugin events

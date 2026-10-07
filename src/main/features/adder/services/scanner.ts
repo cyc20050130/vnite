@@ -69,6 +69,42 @@ interface GlobalScannerConfig {
   }
 }
 
+/**
+ * Remove every game record that lives under a folder the user just removed from the scanner.
+ *
+ * Only the database record goes away: the archives and folders stay on disk untouched, so
+ * re-adding the same folder finds the games again. Mirrors what the scanner shows - the
+ * library must not keep games from a folder the user no longer scans.
+ */
+export async function purgeGamesUnderFolder(folderPath: string): Promise<number> {
+  const target = (folderPath || '').trim().toLowerCase().replace(/[\\/]+$/, '')
+  if (!target) return 0
+  const locals = ((await GameDBManager.getAllGamesLocal()) ?? {}) as Record<string, any>
+  let removed = 0
+  for (const gameId of Object.keys(locals)) {
+    const local = locals[gameId]
+    const candidates: string[] = [
+      local?.utils?.markPath ?? '',
+      local?.path?.gamePath ?? '',
+      local?.archive?.folderPath ?? '',
+      ...((local?.archive?.parts ?? []) as string[])
+    ]
+    const inside = candidates.some((entry) => {
+      const value = (entry || '').toLowerCase()
+      return value === target || value.startsWith(target + path.sep) || value.startsWith(target + '/')
+    })
+    if (!inside) continue
+    try {
+      await GameDBManager.removeGame(gameId)
+      removed++
+      log.info('[Scanner] Removed game record ' + gameId + ' (folder left the scanner: ' + target + ')')
+    } catch (error) {
+      log.warn('[Scanner] Could not remove game ' + gameId + ': ' + String(error))
+    }
+  }
+  return removed
+}
+
 export class GameScanner extends EventEmitter {
   private scanProgress: OverallScanProgress = {
     status: 'idle',
@@ -116,6 +152,11 @@ export class GameScanner extends EventEmitter {
     ipcManager.handle('scanner:get-progress', () => {
       return this.scanProgress
     })
+
+    // A folder that leaves the scanner takes its game records with it (files stay on disk).
+    ipcManager.handle('scanner:purge-folder', async (_, folderPath: string) =>
+      purgeGamesUnderFolder(folderPath)
+    )
 
     // Fix failed folder
     ipcManager.handle(

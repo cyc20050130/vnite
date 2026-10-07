@@ -16,6 +16,7 @@ import { Folder, FolderOpen, Pencil, PlayCircle, Trash2 } from 'lucide-react'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useConfigLocalState } from '~/hooks'
+import { toast } from 'sonner'
 import { cn } from '~/utils'
 import { useGameScannerStore } from './store'
 import { ipcManager } from '~/app/ipc'
@@ -58,6 +59,15 @@ export const GameScannerListItem: React.FC<GameScannerListItemProps> = ({
         list: updatedList
       })
     }
+
+    // The library only shows games of the folders that are still scanned: drop the records
+    // that came from this folder. Files on disk are NOT touched.
+    void ipcManager
+      .invoke('scanner:purge-folder', scanner.path)
+      .then((removed: number) => {
+        if (removed > 0) toast.info(t('notifications.removedGames', { count: removed }))
+      })
+      .catch(() => undefined)
 
     // Close dialog
     setShowDeleteDialog(false)
