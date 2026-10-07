@@ -61,6 +61,7 @@ export class GameScanner extends EventEmitter {
   private globalScanTimer: NodeJS.Timeout | null = null
   private lastScanTime: number = 0
   private autoStartPeriodicScan: boolean = true
+  private stopRequested: boolean = false
   private countedGameIds: Set<string> = new Set()
 
   constructor() {
@@ -71,12 +72,14 @@ export class GameScanner extends EventEmitter {
   private setupIPC(): void {
     // Start scanning all game directories
     ipcManager.handle('scanner:scan-all', async () => {
+      this.stopRequested = false
       await this.startScan()
       return this.scanProgress
     })
 
     // Start scanning a specific game directory
     ipcManager.handle('scanner:scan-scanner', async (_, scannerId: string) => {
+      this.stopRequested = false
       await this.scanSpecificScanner(scannerId)
       return this.scanProgress
     })
@@ -150,10 +153,12 @@ export class GameScanner extends EventEmitter {
       ipcManager.send('scanner:scan-error', { ...this.scanProgress })
       return
     }
-    if (this.scanProgress.status === 'scanning') {
+    if (this.scanProgress.status === 'scanning' && !this.stopRequested) {
       console.log('Scan already in progress')
       return // Already scanning
     }
+    // A fresh start always clears a previous stop request.
+    this.stopRequested = false
     try {
       // Get global scanner configuration
       const scannerConfig = await this.getGlobalScannerConfig()
@@ -485,7 +490,7 @@ export class GameScanner extends EventEmitter {
     normalizeFolderName: boolean,
     duplicateInfos?: DuplicateInfo[]
   ): Promise<void> {
-    if (this.scanProgress.status !== 'scanning') {
+    if (!this.isActive()) {
       return // Exit if scanning has been stopped
     }
 
@@ -608,6 +613,8 @@ export class GameScanner extends EventEmitter {
           return null
         }
 
+        if (!this.isActive()) return
+
         // Search the original title first; retry with the Chinese translation only if
         // nothing matched (e.g. a Chinese-only provider entry).
         let match = await searchOnce(searchName)
@@ -702,6 +709,9 @@ export class GameScanner extends EventEmitter {
               archiveBytes: 0
             }
           }
+
+          // Never import a game the user already asked us to stop for.
+          if (!this.isActive()) return
 
           const dbId = await addGameToDB({
             dataSource: match.source ?? dataSource,
@@ -823,27 +833,35 @@ export class GameScanner extends EventEmitter {
   }
 
   public stopScan(): void {
-    if (this.scanProgress.status === 'scanning') {
-      log.info('[Scanner] Stopping scan')
+    log.info('[Scanner] Stopping scan')
+    // The flag is what long per-folder work checks, so a stop takes effect in the middle of
+    // a folder instead of only before the next one.
+    this.stopRequested = true
 
-      // Set status to idle immediately so all processing loops will exit
-      this.scanProgress.status = 'idle'
-
-      // Reset all scan progress
-      this.scanProgress = {
-        status: 'idle',
-        currentScannerId: '',
-        processedScanners: 0,
-        totalScanners: 0,
-        scannersToProcess: [],
-        scannedGames: 0,
-        scannerProgresses: {}
-      }
-      this.countedGameIds = new Set()
-
-      // Reset current scanner config
-      this.currentScannerConfig = null
+    // Set status to idle immediately so all processing loops will exit
+    this.scanProgress.status = 'idle'
+    this.scanProgress = {
+      status: 'idle',
+      currentScannerId: '',
+      processedScanners: 0,
+      totalScanners: 0,
+      scannersToProcess: [],
+      scannedGames: 0,
+      scannerProgresses: {}
     }
+    this.countedGameIds = new Set()
+
+    // Reset current scanner config
+    this.currentScannerConfig = null
+
+    // Tell the renderer right away: the folder that is already being scraped may keep the
+    // network busy for a while, but the UI must stop showing a running scan.
+    ipcManager.send('scanner:scan-stopped', { ...this.scanProgress })
+  }
+
+  /** False as soon as the user asks to stop, even while a folder is still being processed. */
+  private isActive(): boolean {
+    return this.scanProgress.status === 'scanning' && !this.stopRequested
   }
 
   public async fixFailedFolder(
