@@ -7,6 +7,42 @@ import { classifyArchive } from './archiveDetect'
 import { guessVersion } from './titleResolver'
 import { scoreTranslation, type DuplicateInfo } from './duplicateResolver'
 
+/**
+ * Every file that belongs to one archive: the file itself plus its other volumes
+ * (x.7z.001 + x.7z.002..., x.part1.rar + x.part2.rar..., x.zip + x.z01...).
+ * Deleting a "worse" copy must take all of them, never leave half an archive behind.
+ */
+export async function collectArchiveVolumes(filePath: string): Promise<string[]> {
+  const result = [filePath]
+  try {
+    const dir = path.dirname(filePath)
+    const base = path.basename(filePath)
+    const volumeKey = base
+      .replace(/\.(7z|zip|zipx|rar|tar|gz|tgz|xz|zst|bz2)\.\d{3}$/i, '$1')
+      .replace(/\.(z|r)\d{2}$/i, '')
+      .replace(/\.part\d+\.rar$/i, '')
+    const siblings = await fse.readdir(dir)
+    for (const name of siblings) {
+      if (name === base) continue
+      const siblingKey = name
+        .replace(/\.(7z|zip|zipx|rar|tar|gz|tgz|xz|zst|bz2)\.\d{3}$/i, '$1')
+        .replace(/\.(z|r)\d{2}$/i, '')
+        .replace(/\.part\d+\.rar$/i, '')
+      if (siblingKey !== volumeKey) continue
+      // Only names that really look like another volume of the same archive.
+      if (!/\.(z|r)\d{2}$/i.test(name) && !/\.\d{3}$/i.test(name) && !/\.part\d+\.rar$/i.test(name)) {
+        continue
+      }
+      if (name.toLowerCase() === base.toLowerCase()) continue
+      const full = path.join(dir, name)
+      if (!result.includes(full)) result.push(full)
+    }
+  } catch (error) {
+    log.warn('[Archive] Could not list volumes for ' + filePath + ': ' + String(error))
+  }
+  return result
+}
+
 /** Move the recorded duplicate archives to the system recycle bin. */
 export async function trashDuplicateArchives(
   gameId: string,
@@ -37,9 +73,14 @@ export async function trashDuplicateArchives(
       continue
     }
     try {
-      await shell.trashItem(duplicate.path)
+      const volumes = await collectArchiveVolumes(duplicate.path)
+      for (const volume of volumes) {
+        if (currentPaths.has(volume.toLowerCase())) continue
+        if (!(await fse.pathExists(volume))) continue
+        await shell.trashItem(volume)
+        log.info('[Archive] Trashed duplicate archive ' + volume)
+      }
       trashed++
-      log.info('[Archive] Trashed duplicate archive ' + duplicate.path)
     } catch (error) {
       log.warn('[Archive] Failed to trash ' + duplicate.path + ': ' + String(error))
       remaining.push(duplicate)

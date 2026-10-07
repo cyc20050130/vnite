@@ -25,6 +25,51 @@ export interface ArchiveCandidateInput {
   dirPath: string
   gamePath?: string
   entryKind?: 'folder' | 'archive'
+  archivePaths?: string[]
+}
+
+export interface PlatformInfo {
+  /** The package contains something that runs on PC. */
+  pc: boolean
+  android: boolean
+  korean: boolean
+  label: string
+}
+
+/**
+ * Which platform / language a package targets.
+ *
+ * Packages are often named like 【PC＋KR】... or "...-apk-PC汉化.zip" or plain "...apk".
+ * An Android build can easily be several GB, so it must never outrank a PC build on size
+ * alone; a name without any marker is treated as PC because that is the common case.
+ */
+export function detectPlatform(name: string): PlatformInfo {
+  const lower = (name || '').toLowerCase()
+  const explicitPc =
+    /(^|[^a-z])pc([^a-z]|$)/i.test(lower) ||
+    /(电脑|windows|steam版|硬盘版)/i.test(name) ||
+    /[［【\[][pP][cC][］】\]]/.test(name)
+  const android = /.apk$/i.test(lower) || /(^|[^a-z])apk([^a-z]|$)/i.test(lower)
+  const korean = /(^|[^a-z])kr([^a-z]|$)/i.test(lower) || /(korea|한국|韩|韓)/i.test(name)
+  const pc = explicitPc || !android
+  const label =
+    [pc ? 'PC' : '', android ? 'Android' : '', korean ? 'KR' : ''].filter(Boolean).join('+') ||
+    'PC'
+  return { pc, android, korean, label }
+}
+
+/**
+ * True for the non-first volume of a split archive (x.7z.002, x.part3.rar, x.r01 ...).
+ * These must never take part in duplicate resolution, otherwise a volume could be
+ * deleted as if it were a redundant copy of its own archive.
+ */
+export function isSecondaryVolume(fileName: string): boolean {
+  const numbered = (fileName || '').match(/\.(7z|zip|zipx|rar|tar|gz|tgz|xz|zst|bz2)\.(\d{3})$/i)
+  if (numbered) return Number(numbered[2]) > 1
+  if (/\.(z|r)\d{2}$/i.test(fileName)) return true
+  const part = (fileName || '').match(/\.part(\d+)\.rar$/i)
+  if (part) return Number(part[1]) > 1
+  return false
 }
 
 interface TranslationRule {
@@ -89,17 +134,25 @@ export interface EvaluatedArchive extends DuplicateInfo {
   versionParts: number[]
   dirPath: string
   gamePath: string
+  platform: PlatformInfo
 }
 
-export async function evaluateArchive(filePath: string, dirPath: string): Promise<EvaluatedArchive> {
+export async function evaluateArchive(
+  filePath: string,
+  dirPath: string,
+  extraParts: string[] = []
+): Promise<EvaluatedArchive> {
   const name = path.basename(filePath)
   const translation = scoreTranslation(name)
   const guess = guessVersion(name)
+  const platform = detectPlatform(name)
   let sizeBytes = 0
-  try {
-    sizeBytes = (await fse.stat(filePath)).size
-  } catch {
-    sizeBytes = 0
+  for (const part of [filePath, ...extraParts]) {
+    try {
+      sizeBytes += (await fse.stat(part)).size
+    } catch {
+      // a missing volume simply does not add to the size
+    }
   }
   return {
     path: filePath,
@@ -112,6 +165,7 @@ export async function evaluateArchive(filePath: string, dirPath: string): Promis
     score: translation.score,
     label: translation.label,
     sizeBytes,
+    platform,
     reason: ''
   }
 }
@@ -132,6 +186,9 @@ export function compareCandidates(
   b: EvaluatedArchive,
   priority: DuplicatePriority
 ): number {
+  // A PC build always beats an Android-only build: an APK can be several GB and would
+  // otherwise win on size alone. Everything below only compares equal platforms.
+  if (a.platform.pc !== b.platform.pc) return a.platform.pc ? -1 : 1
   if (priority === 'translation') {
     if (a.score !== b.score) return b.score - a.score
     const version = compareVersionDesc(a, b)
@@ -167,9 +224,17 @@ export async function planArchiveGroups<T extends ArchiveCandidateInput>(
       passthrough.push(candidate)
       continue
     }
+    // Volumes of one archive are never copies of each other.
+    if (isSecondaryVolume(path.basename(candidate.gamePath))) {
+      passthrough.push(candidate)
+      continue
+    }
     const key = candidate.dirPath.toLowerCase() + '|' + normalizeTitleKey(path.basename(candidate.gamePath))
     const list = groups.get(key) ?? []
-    list.push({ candidate, evaluated: await evaluateArchive(candidate.gamePath, candidate.dirPath) })
+    list.push({
+      candidate,
+      evaluated: await evaluateArchive(candidate.gamePath, candidate.dirPath)
+    })
     groups.set(key, list)
   }
 
@@ -190,9 +255,11 @@ export async function planArchiveGroups<T extends ArchiveCandidateInput>(
         translation: entry.evaluated.translation,
         sizeBytes: entry.evaluated.sizeBytes,
         reason:
-          priority === 'translation'
+          (priority === 'translation'
             ? entry.evaluated.translation + ' / ' + (entry.evaluated.version || 'unknown version')
-            : (entry.evaluated.version || 'unknown version') + ' / ' + entry.evaluated.translation
+            : (entry.evaluated.version || 'unknown version') + ' / ' + entry.evaluated.translation) +
+          ' / ' +
+          entry.evaluated.platform.label
       }))
     )
   }
