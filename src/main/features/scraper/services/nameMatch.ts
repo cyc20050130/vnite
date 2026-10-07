@@ -8,6 +8,56 @@ import { jaroWinkler } from '@appUtils'
 
 const KANA_RE = /[\u3040-\u309f\u30a0-\u30ff]/
 
+/**
+ * Clean a name that came from a provider.
+ *
+ * Some sources (Ymgal in particular) return the upload name instead of a title:
+ * "1.炎の孕ませ転校生（炎孕转校生）", "10_もっと！…（吹弹！…）", "13.[PC]炎孕13 异世界魅魔学园！".
+ * Strip the leading index / packaging tag and, when the main part is kana and the
+ * parenthesised part is Chinese, keep the Chinese part.
+ */
+export function normalizeDisplayName(raw: string): string {
+  const value = (raw ?? '').trim()
+  if (!value) return ''
+  let out = value.replace(/^\s*\d{1,3}\s*[.、_\-]\s*/, '')
+  out = out.replace(/^\s*[\[【［][^\]】］]{1,8}[\]】］]\s*/, '')
+  const match = out.match(/[（(]([^（）()]{2,60})[）)]\s*$/)
+  if (match && match.index !== undefined) {
+    const inside = match[1].trim()
+    const outside = out.slice(0, match.index).trim()
+    if (outside && KANA_RE.test(outside) && inside && !KANA_RE.test(inside)) return inside
+  }
+  return out.trim() || value
+}
+
+/** Names that certainly are not a game title, so we never search for (or import) them. */
+const PLACEHOLDER_TITLES = new Set([
+  'temp',
+  'tmp',
+  'test',
+  'new',
+  'newfolder',
+  'untitled',
+  'todo',
+  'download',
+  'archive',
+  'game',
+  'gamefolder',
+  '新建文件夹',
+  '新建文件夹2',
+  '未命名',
+  '下载',
+  '压缩包'
+])
+
+export function isPlaceholderTitle(name: string): boolean {
+  const key = (name || '').toLowerCase().replace(/[^a-z0-9\u3400-\u9fff]+/g, '')
+  if (!key) return true
+  if (PLACEHOLDER_TITLES.has(key)) return true
+  // "v1.2" / "2024-01-01" style names carry nothing to search for.
+  return /^v?\d+([._-]\d+)*$/.test(name.trim().toLowerCase())
+}
+
 /** True when a name looks like Chinese (hanzi, no kana). */
 export function isChineseName(value: string): boolean {
   if (!value) return false

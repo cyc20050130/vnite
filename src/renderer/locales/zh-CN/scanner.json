@@ -12,7 +12,8 @@
     "scanners": "{{count}} 个扫描器",
     "games": "{{count}} 个游戏",
     "scanInterval": "每 {{minutes}} 分钟扫描",
-    "failures": "{{count}}个失败"
+    "failures": "{{count}}个失败",
+    "skipped": "{{count}} 个未完成/被占用"
   },
   "actions": {
     "pause": "暂停",

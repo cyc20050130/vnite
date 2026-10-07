@@ -43,6 +43,43 @@ export async function collectArchiveVolumes(filePath: string): Promise<string[]>
   return result
 }
 
+/**
+ * Fold freshly discovered duplicates into a game that is already in the library.
+ * Without this a rescan finds the copies, then throws the information away because the
+ * kept candidate is skipped as "already exists".
+ */
+export async function mergeArchiveDuplicates(
+  gameId: string,
+  incoming: DuplicateInfo[]
+): Promise<number> {
+  try {
+    if (!incoming || incoming.length === 0) return 0
+    const local = await GameDBManager.getGameLocal(gameId)
+    if (!local?.archive?.enabled) return 0
+    const ownPaths = new Set(
+      [...(local.archive.parts ?? []), local.archive.folderPath ?? '']
+        .filter(Boolean)
+        .map((entry) => entry.toLowerCase())
+    )
+    const byPath = new Map((local.archive.duplicates ?? []).map((d) => [d.path.toLowerCase(), d]))
+    let added = 0
+    for (const info of incoming) {
+      const key = (info.path ?? '').toLowerCase()
+      if (!key || byPath.has(key) || ownPaths.has(key)) continue
+      byPath.set(key, info)
+      added++
+    }
+    if (added > 0) {
+      await GameDBManager.setGameLocalValue(gameId, 'archive.duplicates', [...byPath.values()])
+      log.info('[Archive] Recorded ' + added + ' more duplicate(s) for ' + gameId)
+    }
+    return added
+  } catch (error) {
+    log.warn('[Archive] mergeArchiveDuplicates failed for ' + gameId + ': ' + String(error))
+    return 0
+  }
+}
+
 /** Move the recorded duplicate archives to the system recycle bin. */
 export async function trashDuplicateArchives(
   gameId: string,

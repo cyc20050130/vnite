@@ -17,12 +17,29 @@ import {
   isPathWithinRoot
 } from '~/utils'
 import { classifyArchive } from '~/features/archive/services/archiveDetect'
+
+/** Total size of the given files, ignoring the ones we cannot read. */
+async function sumPaths(paths: string[]): Promise<number> {
+  let total = 0
+  for (const entry of paths) {
+    try {
+      total += (await fse.stat(entry)).size
+    } catch {
+      // missing file: contributes nothing
+    }
+  }
+  return total
+}
 import { guessVersion, parseArchiveName } from '~/features/archive/services/titleResolver'
 import { planArchiveGroups, type DuplicateInfo } from '~/features/archive/services/duplicateResolver'
+import {
+  collectArchiveVolumes,
+  mergeArchiveDuplicates
+} from '~/features/archive/services/duplicateActions'
 import { detectIncompleteArchive } from '~/features/archive/services/incompleteDetect'
 import { listArchive } from '~/features/archive/services/archiveList'
 import { syncArchiveFolder } from '~/features/archive/services/archiveLayout'
-import { isChineseName } from '~/features/scraper/services/nameMatch'
+import { isChineseName, isPlaceholderTitle } from '~/features/scraper/services/nameMatch'
 import { addGameToDB } from './adder'
 
 // Scanner configuration type
@@ -157,8 +174,10 @@ export class GameScanner extends EventEmitter {
       console.log('Scan already in progress')
       return // Already scanning
     }
-    // A fresh start always clears a previous stop request.
+    // A fresh start always clears a previous stop request and gives every provider another
+    // chance (unreachable ones are skipped for the rest of a scan, see ScraperManager).
     this.stopRequested = false
+    scraperManager.resetProviderHealth()
     try {
       // Get global scanner configuration
       const scannerConfig = await this.getGlobalScannerConfig()
@@ -191,7 +210,8 @@ export class GameScanner extends EventEmitter {
           foldersToProcess: [],
           failedFolders: [],
           scannedGames: 0,
-          skippedIncomplete: 0
+          skippedIncomplete: 0,
+          skippedArchives: []
         }
       }
 
@@ -304,7 +324,8 @@ export class GameScanner extends EventEmitter {
         foldersToProcess: [],
         failedFolders: [],
         scannedGames: 0,
-        skippedIncomplete: 0
+        skippedIncomplete: 0,
+        skippedArchives: []
       }
       this.currentScannerConfig = {
         ...scanner,
@@ -515,6 +536,11 @@ export class GameScanner extends EventEmitter {
         if (folder.entryKind === 'archive') {
           await syncArchiveFolder(existingGameId).catch(() => undefined)
         }
+        // Copies of a game that is already in the library must still be recorded, otherwise
+        // they stay invisible forever.
+        if (duplicateInfos && duplicateInfos.length > 0) {
+          await mergeArchiveDuplicates(existingGameId, duplicateInfos).catch(() => 0)
+        }
       } else {
         // Resolve archive-backed entities. Auto mode already carries gamePath;
         // hierarchy mode may point at a folder that only contains archives.
@@ -542,14 +568,21 @@ export class GameScanner extends EventEmitter {
           if (skipIncomplete) {
             const incomplete = await detectIncompleteArchive(gamePath)
             if (incomplete.incomplete) {
+              scannerProgress.skippedArchives = scannerProgress.skippedArchives ?? []
+              if (scannerProgress.skippedArchives.length < 100) {
+                scannerProgress.skippedArchives.push({
+                  name: path.basename(gamePath ?? ''),
+                  reason: incomplete.reason,
+                  detail: incomplete.detail
+                })
+              }
               log.info(
-                '[Scanner] Skipped incomplete archive ' +
+                '[Scanner] Skipped archive ' +
                   gamePath +
-                  ' (' +
+                  ' (reason=' +
                   incomplete.reason +
-                  ': ' +
-                  incomplete.detail +
-                  ')'
+                  ') ' +
+                  incomplete.detail
               )
               scannerProgress.skippedIncomplete = (scannerProgress.skippedIncomplete ?? 0) + 1
               return
@@ -614,6 +647,12 @@ export class GameScanner extends EventEmitter {
         }
 
         if (!this.isActive()) return
+
+        // "temp", "新建文件夹", "v1.2" ... are not titles; searching them imports junk.
+        if (isPlaceholderTitle(searchName ?? folder.name ?? '')) {
+          log.info('[Scanner] Skipped placeholder name: ' + folder.name)
+          return
+        }
 
         // Search the original title first; retry with the Chinese translation only if
         // nothing matched (e.g. a Chinese-only provider entry).
@@ -703,10 +742,10 @@ export class GameScanner extends EventEmitter {
             }
             archiveInfo = {
               format: info?.format ?? 'other',
-              parts: [gamePath],
+              parts: await collectArchiveVolumes(gamePath),
               entrypoint,
               encrypted,
-              archiveBytes: 0
+              archiveBytes: await sumPaths(await collectArchiveVolumes(gamePath))
             }
           }
 

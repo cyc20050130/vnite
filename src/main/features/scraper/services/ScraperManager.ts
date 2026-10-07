@@ -36,6 +36,9 @@ function normalizeSearchText(input: string): string {
 export class ScraperManager {
   private providers: Map<string, ScraperProvider> = new Map()
 
+  /** Providers that keep failing in the current scan; skipped after two failures. */
+  private providerFailures: Map<string, number> = new Map()
+
   public registerProvider(provider: ScraperProvider): void {
     this.providers.set(provider.id, provider)
   }
@@ -771,6 +774,11 @@ export class ScraperManager {
     return null
   }
 
+  /** A new scan gives every provider another chance. */
+  public resetProviderHealth(): void {
+    this.providerFailures.clear()
+  }
+
   public async aggregateSearchGames(
     gameName: string,
     options: AggregatedSearchOptions = {}
@@ -783,9 +791,12 @@ export class ScraperManager {
     const fallbackOrder = ['bangumi', 'vndb', 'dlsite', 'ymgal', 'steam', 'igdb', 'erogamescape']
     const requested =
       options.providers && options.providers.length > 0 ? options.providers : fallbackOrder
+    // Providers that already failed twice in this scan are skipped: unreachable sources and
+    // sources without credentials (IGDB) would otherwise cost a timeout on every folder.
     const callable = requested.filter((id) => {
       if (!this.hasProvider(id)) return false
-      return Boolean(this.getProvider(id)!.searchGames)
+      if (!this.getProvider(id)!.searchGames) return false
+      return (this.providerFailures.get(id) ?? 0) < 2
     })
 
     const timeoutMs = options.perSourceTimeoutMs ?? 8000
@@ -826,6 +837,9 @@ export class ScraperManager {
           const reason =
             result.reason instanceof Error ? result.reason.message : String(result.reason)
           errors.push({ source: providerId, message: reason })
+        // Count the failure so an unreachable/credential-less provider stops costing a
+        // timeout on every single folder of this scan.
+        this.providerFailures.set(providerId, (this.providerFailures.get(providerId) ?? 0) + 1)
           log.warn('[Scraper] aggregate search failed for ' + providerId + ': ' + reason)
         }
       })

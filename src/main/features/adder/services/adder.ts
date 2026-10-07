@@ -31,6 +31,7 @@ import {
   tryUpscaleGameImage
 } from '~/features/game'
 import { syncArchiveFolder } from '~/features/archive/services/archiveLayout'
+import { normalizeDisplayName } from '~/features/scraper/services/nameMatch'
 import { maybeRenameGameFolder } from '~/features/game/services/rename'
 import { launcherPreset } from '~/features/launcher'
 import { scraperManager } from '~/features/scraper'
@@ -318,6 +319,9 @@ export async function addGameToDB({
     } else if (!gameDoc.metadata.name && resolvedLocalName) {
       gameDoc.metadata.name = resolvedLocalName
     }
+    // Providers hand back upload-style names (Ymgal: "1.炎の孕ませ転校生（炎孕转校生）");
+    // clean them before they become the display name.
+    gameDoc.metadata.name = normalizeDisplayName(gameDoc.metadata.name) || gameDoc.metadata.name
 
     if (playTime) {
       gameDoc.record.playTime = playTime

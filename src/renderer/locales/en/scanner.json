@@ -12,7 +12,8 @@
     "scanners": "{{count}} Scanners",
     "games": "{{count}} Games",
     "scanInterval": "Scan every {{minutes}} minutes",
-    "failures": "{{count}} Failures"
+    "failures": "{{count}} Failures",
+    "skipped": "{{count}} skipped"
   },
   "actions": {
     "pause": "Pause",

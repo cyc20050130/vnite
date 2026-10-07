@@ -73,6 +73,12 @@ export const GameScannerManager: React.FC = () => {
     return Math.round((scanProgress.processedScanners / scanProgress.totalScanners) * 100)
   }
 
+  const getSkippedIncompleteCount = (): number => {
+    return Object.values(scanProgress?.scannerProgresses).reduce((total, progress) => {
+      return total + (progress.skippedIncomplete || 0)
+    }, 0)
+  }
+
   const getFailedFolderCount = (): number => {
     return Object.values(scanProgress?.scannerProgresses).reduce((total, progress) => {
       return total + (progress.failedFolders?.length || 0)
@@ -179,6 +185,19 @@ export const GameScannerManager: React.FC = () => {
                       </Badge>
                     )}
                   </div>
+                  {getSkippedIncompleteCount() > 0 && (
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center h-[22px] gap-1 px-2"
+                      title={Object.values(scanProgress?.scannerProgresses)
+                        .flatMap((progress) => progress.skippedArchives ?? [])
+                        .slice(0, 15)
+                        .map((item) => item.name + ' — ' + item.reason)
+                        .join(String.fromCharCode(10))}
+                    >
+                      <span>{t('metrics.skipped', { count: getSkippedIncompleteCount() })}</span>
+                    </Badge>
+                  )}
                   {getFailedFolderCount() > 0 && (
                     <Button
                       variant="destructive"

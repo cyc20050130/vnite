@@ -16,6 +16,8 @@ export interface ScannerProgress {
   }[]
   scannedGames: number
   skippedIncomplete: number
+  /** Archives we refused to import, with the reason, so the UI can explain itself. */
+  skippedArchives: { name: string; reason: string; detail: string }[]
   errorMessage?: string
 }
 
