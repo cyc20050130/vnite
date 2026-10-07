@@ -47,6 +47,9 @@ export interface configDocs {
       enabled: boolean
       scanArchives: boolean
       aggregateSearch: boolean
+      /** Give every archive game a folder of its own, named after the localized name. */
+      archiveInFolder: boolean
+      /** Extract root; empty means "next to the archive". */
       defaultExtractRoot: string
       compressFormat: 'auto' | '7z' | 'zip'
       keepArchiveAfterExtract: boolean
@@ -448,6 +451,7 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
       enabled: true,
       scanArchives: true,
       aggregateSearch: false,
+      archiveInFolder: true,
       defaultExtractRoot: '',
       compressFormat: 'auto' as const,
       keepArchiveAfterExtract: false,

@@ -167,6 +167,10 @@ export interface gameArchiveLocal {
   state: GameArchiveState
   entrypoint: string
   extractDir: string
+  /** Folder created for this game next to the archive (holds the archive and its files). */
+  folderPath: string
+  /** True once we took over the folder layout for this game. */
+  layoutManaged: boolean
   keepArchive: boolean
   passwordId: string
   encrypted: boolean
@@ -201,6 +205,8 @@ export interface ArchiveStatusView {
   format: string
   archivePath: string
   parts: string[]
+  /** Per-game folder that holds the archive and the extracted files. */
+  folder: string
   extractDir: string
   entrypoint: string
   encrypted: boolean
@@ -295,6 +301,8 @@ export const DEFAULT_GAME_LOCAL_VALUES: Readonly<gameLocalDoc> = {
     state: 'archived',
     entrypoint: '',
     extractDir: '',
+    folderPath: '',
+    layoutManaged: false,
     keepArchive: false,
     passwordId: '',
     encrypted: false,

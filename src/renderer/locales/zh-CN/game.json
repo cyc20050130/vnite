@@ -224,7 +224,8 @@
       "noGame": "找不到该游戏",
       "unknown": "无需重命名"
     },
-    "compressThenSwitch": "先回压再切换"
+    "compressThenSwitch": "先回压再切换",
+    "folder": "游戏文件夹"
   },
   "librarybar": {
     "home": "主页",

@@ -22,6 +22,10 @@ import { classifyArchiveError } from './errorCodes'
 import { pickArchiveEngine } from './engineRegistry'
 import { detectIncompleteArchive } from './incompleteDetect'
 import { backupGameSave, searchGameSavePaths } from '~/features/game'
+import {
+  sanitizeFolderName as sanitizeFolderPath,
+  stripArchiveExtension
+} from '~/features/game/services/folderName'
 
 const TMP_SUFFIX = '.vnite-tmp'
 const LONG_TIMEOUT = 6 * 60 * 60 * 1000
@@ -29,15 +33,7 @@ const LONG_TIMEOUT = 6 * 60 * 60 * 1000
 export type ArchiveStatus = ArchiveStatusView
 
 function sanitizeFolderName(name: string): string {
-  const cleaned = name
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
-    .replace(/[. ]+$/, '')
-    .trim()
-  return cleaned.length > 0 ? cleaned.slice(0, 120) : 'game'
-}
-
-function stripArchiveExtension(name: string): string {
-  return name.replace(/\.(7z|zip|zipx|rar|tar|gz|tgz|xz|zst|bz2)(\.\d{3})?$/i, '')
+  return sanitizeFolderPath(name) || 'game'
 }
 
 async function resolveExtractDir(archivePath: string, titleHint?: string): Promise<string> {
@@ -294,6 +290,9 @@ async function doEnsureExtracted(gameId: string): Promise<string> {
 
     if (!archive.keepArchive) {
       await removeArchiveParts(parts.length > 0 ? parts : [archivePath])
+      // The archive is gone; keep the stored paths honest so a later re-compress builds
+      // the new archive inside the game's own folder instead of a deleted path.
+      await GameDBManager.setGameLocalValue(gameId, 'archive.parts', [])
     }
 
     ipcManager.send('archive:job-progress', { gameId, jobType: 'extract', percent: 100 })
@@ -408,13 +407,23 @@ export async function compressGame(gameId: string): Promise<string> {
     throw new Error('Nothing to compress for game ' + gameId)
   }
 
-  const parts: string[] = archive.parts ?? []
-  let targetArchive = parts[0] && parts[0].length > 0
-    ? parts[0]
-    : path.join(path.dirname(extractDir), path.basename(extractDir) + '.7z')
-
+  const parts: string[] = (archive.parts ?? []).filter(Boolean)
   const configured = await ConfigDBManager.getConfigValue('game.archive.compressFormat')
   const format: '7z' | 'zip' = configured === 'zip' ? 'zip' : '7z'
+
+  const game = await GameDBManager.getGame(gameId)
+  const folderPath = archive.folderPath ?? ''
+  const displayName =
+    sanitizeFolderName(game?.metadata?.name ?? '') || path.basename(extractDir)
+  let targetArchive: string
+  if (folderPath && (await fse.pathExists(folderPath))) {
+    // Managed layout: the new archive sits next to the extracted folder, named after 译名.
+    targetArchive = path.join(folderPath, displayName + '.' + format)
+  } else if (parts[0]) {
+    targetArchive = parts[0]
+  } else {
+    targetArchive = path.join(path.dirname(extractDir), displayName + '.' + format)
+  }
   if (!new RegExp('\\.' + format + '$', 'i').test(targetArchive)) {
     targetArchive = targetArchive.replace(/\.[^.]+$/, '') + '.' + format
   }
@@ -465,6 +474,13 @@ export async function compressGame(gameId: string): Promise<string> {
     const size = (await fse.stat(targetArchive)).size
     await GameDBManager.setGameLocalValue(gameId, 'archive.state', 'archived')
     await GameDBManager.setGameLocalValue(gameId, 'archive.parts', [targetArchive])
+    // The archive we just built is never password protected, so clear every password flag:
+    // leaving encrypted=true would make the next launch demand a password that cannot work.
+    await GameDBManager.setGameLocalValue(gameId, 'archive.format', format as never)
+    await GameDBManager.setGameLocalValue(gameId, 'archive.encrypted', false)
+    await GameDBManager.setGameLocalValue(gameId, 'archive.headerEncrypted', false)
+    await GameDBManager.setGameLocalValue(gameId, 'archive.passwordId', '')
+    if (folderPath) await GameDBManager.setGameLocalValue(gameId, 'archive.folderPath', folderPath)
     await GameDBManager.setGameLocalValue(gameId, 'archive.extractDir', '')
     await GameDBManager.setGameLocalValue(gameId, 'archive.entrypoint', '')
     await GameDBManager.setGameLocalValue(gameId, 'archive.archiveBytes', size)
@@ -508,6 +524,7 @@ export async function getArchiveStatus(gameId: string): Promise<ArchiveStatus | 
     format: archive?.format ?? '',
     archivePath: parts[0] ?? '',
     parts,
+    folder: archive?.folderPath ?? '',
     extractDir: archive?.extractDir ?? '',
     entrypoint: archive?.entrypoint ?? '',
     encrypted: Boolean(archive?.encrypted),

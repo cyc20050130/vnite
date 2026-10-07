@@ -354,6 +354,7 @@ export function Archive({ gameId }: { gameId: string }): React.JSX.Element {
           <Row label={t('archivePanel.format')} value={status?.format || '-'} />
           <Row label={t('archivePanel.archiveSize')} value={formatBytes(status?.archiveBytes ?? 0)} />
           <Row label={t('archivePanel.extractedSize')} value={formatBytes(status?.extractedBytes ?? 0)} />
+          <Row label={t('archivePanel.folder')} value={status?.folder || '-'} mono />
           <Row label={t('archivePanel.archivePath')} value={status?.archivePath || '-'} mono />
           <Row label={t('archivePanel.extractDir')} value={status?.extractDir || '-'} mono />
           <Row label={t('archivePanel.entrypoint')} value={status?.entrypoint || '-'} mono />

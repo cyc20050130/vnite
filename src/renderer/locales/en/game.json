@@ -224,7 +224,8 @@
       "noGame": "Game not found",
       "unknown": "Nothing to rename"
     },
-    "compressThenSwitch": "Re-compress first"
+    "compressThenSwitch": "Re-compress first",
+    "folder": "Game folder"
   },
   "librarybar": {
     "home": "Home",

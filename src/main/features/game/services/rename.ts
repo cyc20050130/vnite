@@ -2,6 +2,10 @@ import path from 'path'
 import fse from 'fs-extra'
 import log from 'electron-log/main'
 import { ConfigDBManager, GameDBManager } from '~/core/database'
+import { syncArchiveFolder } from '~/features/archive/services/archiveLayout'
+import { sanitizeFolderName } from './folderName'
+
+export { sanitizeFolderName }
 
 /**
  * Rename a game's folder so the filesystem matches the localized name (译名).
@@ -16,16 +20,6 @@ export interface RenameFolderResult {
   from: string
   to: string
   reason: string
-}
-
-/** Windows-safe folder name derived from a display name. */
-export function sanitizeFolderName(name: string): string {
-  const cleaned = (name || '')
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
-    .replace(/\s+/g, ' ')
-    .replace(/[. ]+$/, '')
-    .trim()
-  return cleaned.length > 0 ? cleaned.slice(0, 120) : ''
 }
 
 async function isDirectory(target: string): Promise<boolean> {
@@ -54,6 +48,22 @@ export async function renameGameFolderToName(gameId: string): Promise<RenameFold
 
     const extractedDir = extractDir && (await isDirectory(extractDir)) ? extractDir : ''
     const archiveBacked = Boolean(local.archive?.enabled)
+
+    // Archive games own a folder next to the archive; renaming that folder is safe even
+    // while the archive is still packed, so hand the whole job to the layout service.
+    if (archiveBacked) {
+      const synced = await syncArchiveFolder(gameId)
+      if (synced.reason === 'ok') {
+        return { renamed: true, from: synced.from, to: synced.to, reason: 'renamedFolder' }
+      }
+      if (synced.reason === 'alreadyManaged') {
+        return { renamed: false, from: synced.to, to: synced.to, reason: 'alreadyNamed' }
+      }
+      // Anything else (layout disabled, no archive, name clash) keeps the old behaviour.
+      if (synced.reason !== 'disabled' && synced.reason !== 'noArchive') {
+        return empty(synced.reason)
+      }
+    }
 
     // Safety: when an archive is not extracted there is no folder of its own —
     // utils.markPath points at the container directory (e.g. the whole scan root), and

@@ -21,6 +21,7 @@ import { guessVersion, parseArchiveName } from '~/features/archive/services/titl
 import { planArchiveGroups, type DuplicateInfo } from '~/features/archive/services/duplicateResolver'
 import { detectIncompleteArchive } from '~/features/archive/services/incompleteDetect'
 import { listArchive } from '~/features/archive/services/archiveList'
+import { syncArchiveFolder } from '~/features/archive/services/archiveLayout'
 import { isChineseName } from '~/features/scraper/services/nameMatch'
 import { addGameToDB } from './adder'
 
@@ -503,6 +504,11 @@ export class GameScanner extends EventEmitter {
           this.countedGameIds.add(existingGameId)
           scannerProgress.scannedGames++
           this.scanProgress.scannedGames++
+        }
+        // Scanning is also what applies the folder layout, so a rescan adopts archives
+        // that were imported before the layout existed.
+        if (folder.entryKind === 'archive') {
+          await syncArchiveFolder(existingGameId).catch(() => undefined)
         }
       } else {
         // Resolve archive-backed entities. Auto mode already carries gamePath;

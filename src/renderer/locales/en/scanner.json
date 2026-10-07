@@ -112,7 +112,9 @@
     "renameFolderToName": "Rename folder to the name",
     "renameFolderToNameTooltip": "After scraping, rename the game folder to the localized name returned by the provider and update the stored paths. Archive files are left untouched.",
     "preferChineseName": "Look for a Chinese name",
-    "preferChineseNameTooltip": "When the matched source has no Chinese title (e.g. only romaji), try Bangumi / Ymgal / VNDB and use their Chinese name. If nothing is found the name stays as-is."
+    "preferChineseNameTooltip": "When the matched source has no Chinese title (e.g. only romaji), try Bangumi / Ymgal / VNDB and use their Chinese name. If nothing is found the name stays as-is.",
+    "archiveInFolder": "One folder per archive",
+    "archiveInFolderTooltip": "When an archive game is scanned, create a folder named after the localized name next to the archive, move the archive inside, and extract into it so the extracted folder sits beside the archive."
   },
   "dataSources": {
     "steam": "Steam",

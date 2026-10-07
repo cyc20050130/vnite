@@ -112,7 +112,9 @@
     "renameFolderToName": "按译名重命名文件夹",
     "renameFolderToNameTooltip": "刮削到数据后，用数据源返回的中文名（译名）重命名游戏文件夹；会同步更新启动路径与解压目录。仅改文件夹，不动压缩包文件名。",
     "preferChineseName": "跨源查找中文名",
-    "preferChineseNameTooltip": "当前数据源没有中文名时（例如只有罗马音），再去 Bangumi / Ymgal / VNDB 等源搜一次取中文名；都找不到就不填译名，保持原名。"
+    "preferChineseNameTooltip": "当前数据源没有中文名时（例如只有罗马音），再去 Bangumi / Ymgal / VNDB 等源搜一次取中文名；都找不到就不填译名，保持原名。",
+    "archiveInFolder": "压缩包放进独立文件夹",
+    "archiveInFolderTooltip": "扫描出压缩包游戏时，在压缩包所在目录建一个同名（译名）文件夹并把压缩包移进去；解压后的文件夹也放在里面，与压缩包同级。"
   },
   "dataSources": {
     "steam": "Steam",

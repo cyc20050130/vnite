@@ -30,6 +30,7 @@ import {
   saveGameIconByFile,
   tryUpscaleGameImage
 } from '~/features/game'
+import { syncArchiveFolder } from '~/features/archive/services/archiveLayout'
 import { maybeRenameGameFolder } from '~/features/game/services/rename'
 import { launcherPreset } from '~/features/launcher'
 import { scraperManager } from '~/features/scraper'
@@ -591,6 +592,12 @@ export async function addGameToDB({
     // Set the launcher preset (folder games only: the default preset would just
     // shell.openPath the archive for archive-backed games).
     if (gamePath && sourceType !== 'archive') await launcherPreset('default', dbId)
+
+    // Archive games get a folder of their own next to the archive (named after 译名) and
+    // the archive moves into it; folder games just follow the regular rename below.
+    if (sourceType === 'archive') {
+      await syncArchiveFolder(dbId).catch(() => undefined)
+    }
 
     // Mirror the provider's localized name onto the folder on disk.
     await maybeRenameGameFolder(dbId)
