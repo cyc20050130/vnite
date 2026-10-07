@@ -51,7 +51,9 @@ export function detectPlatform(name: string): PlatformInfo {
     /[［【\[][pP][cC][］】\]]/.test(name)
   const android = /.apk$/i.test(lower) || /(^|[^a-z])apk([^a-z]|$)/i.test(lower)
   const korean = /(^|[^a-z])kr([^a-z]|$)/i.test(lower) || /(korea|한국|韩|韓)/i.test(name)
-  const pc = explicitPc || !android
+  // No marker at all means the normal PC release; an Android OR Korean marker without an
+  // explicit PC marker means the package is not the PC build we want to keep.
+  const pc = explicitPc || (!android && !korean)
   const label =
     [pc ? 'PC' : '', android ? 'Android' : '', korean ? 'KR' : ''].filter(Boolean).join('+') ||
     'PC'
