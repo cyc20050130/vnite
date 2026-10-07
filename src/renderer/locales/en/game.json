@@ -1019,7 +1019,8 @@
       "selectAll": "Select All",
       "selected": "{{count}} items selected",
       "calculateSize": "Calculate Size",
-      "calculatingSize": "Calculating..."
+      "calculatingSize": "Calculating...",
+      "cleanDuplicates": "Clean duplicates"
     },
     "storageSize": {
       "confirmTitle": "Calculate Game Size",
@@ -1052,6 +1053,12 @@
         "success": "{{count}} games deleted",
         "error": "Failed to delete {{count}} games: {{message}}"
       }
+    },
+    "cleanDuplicates": {
+      "title": "Clean duplicate archives?",
+      "description": "Compare the selected games again and move the worse copy (older version, Android only, or smaller) to the recycle bin. It can be restored at any time.",
+      "confirm": "Clean",
+      "cancel": "Cancel"
     }
   },
   "updater": {

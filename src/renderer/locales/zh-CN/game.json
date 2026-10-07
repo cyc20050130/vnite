@@ -1019,7 +1019,8 @@
       "selectAll": "全选",
       "selected": "已选择 {{count}} 项",
       "calculateSize": "计算大小",
-      "calculatingSize": "计算中..."
+      "calculatingSize": "计算中...",
+      "cleanDuplicates": "清理重复包"
     },
     "storageSize": {
       "confirmTitle": "计算游戏大小",
@@ -1052,6 +1053,12 @@
         "success": "{{count}} 个游戏已删除",
         "error": "删除{{count}} 个游戏失败: {{message}}"
       }
+    },
+    "cleanDuplicates": {
+      "title": "清理重复压缩包？",
+      "description": "重新比对选中游戏的重复压缩包，较差的那一份（版本更旧、只有安卓版、或体积更小）会被移到回收站，可以随时还原。",
+      "confirm": "开始清理",
+      "cancel": "取消"
     }
   },
   "updater": {

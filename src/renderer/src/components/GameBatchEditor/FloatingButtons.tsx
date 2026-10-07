@@ -14,6 +14,18 @@ import { useLocation } from '@tanstack/react-router'
 import { useGameCollectionStore } from '~/stores/game'
 import { useBatchStorageSizeStore } from '~/stores/batchStorageSizeStore'
 import { Loader2 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '~/components/ui/alert-dialog'
+import { useArchiveBatchStore } from '~/stores/archiveBatchStore'
 
 export function FloatingButtons(): React.JSX.Element {
   const { t } = useTranslation('game')
@@ -23,6 +35,7 @@ export function FloatingButtons(): React.JSX.Element {
   const [isInformationDialogOpen, setIsInformationDialogOpen] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showCalculateSizeDialog, setShowCalculateSizeDialog] = useState(false)
+  const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false)
   const {
     setGameIds: setGameMetadataUpdaterGameIds,
     setIsOpen: setIsGameMetadataUpdaterDialogOpen
@@ -124,6 +137,40 @@ export function FloatingButtons(): React.JSX.Element {
               </>
             )}
           </Button>
+          {/* Clean duplicate archives */}
+          <AlertDialog open={showDuplicateConfirm} onOpenChange={setShowDuplicateConfirm}>
+            <AlertDialogTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={selectedGameIds.length === 0}
+                className="flex items-center gap-1"
+              >
+                <span className="icon-[mdi--content-duplicate] w-4 h-4" />
+                {t('batchEditor.floatingButtons.cleanDuplicates')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('batchEditor.cleanDuplicates.title')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('batchEditor.cleanDuplicates.description')}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('batchEditor.cleanDuplicates.cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    void useArchiveBatchStore
+                      .getState()
+                      .start('resolve-duplicates', selectedGameIds)
+                  }}
+                >
+                  {t('batchEditor.cleanDuplicates.confirm')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           {/* Delete Game Alert */}
           <Button
             size="sm"
