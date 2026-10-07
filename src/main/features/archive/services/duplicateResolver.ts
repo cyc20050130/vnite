@@ -198,13 +198,21 @@ export function compareCandidates(
     if (version !== 0) return version
     if (a.score !== b.score) return b.score - a.score
   }
-  if (a.sizeBytes !== b.sizeBytes) return b.sizeBytes - a.sizeBytes
+  // File size is deliberately NOT a criterion: PC+KR / Android bundles inflate it and a
+  // repack can come out smaller, so it says nothing about which copy is the better one.
+  // The path only keeps the comparison deterministic when everything else is equal.
   return a.path.localeCompare(b.path)
 }
 
 export interface ArchiveGroupPlan<T extends ArchiveCandidateInput> {
   keep: T[]
   duplicates: Map<T, DuplicateInfo[]>
+  /**
+   * Android-only / KR-only packages. They are never compared with the PC release: the user
+   * wants them gone. A package that also carries a PC build is NOT in here, because deleting
+   * it would throw the playable version away too.
+   */
+  disposable: T[]
 }
 
 /**
@@ -218,6 +226,7 @@ export async function planArchiveGroups<T extends ArchiveCandidateInput>(
   const groups = new Map<string, { candidate: T; evaluated: EvaluatedArchive }[]>()
   const keep: T[] = []
   const passthrough: T[] = []
+  const disposable: T[] = []
 
   for (const candidate of candidates) {
     if (candidate.entryKind !== 'archive' || !candidate.gamePath) {
@@ -225,8 +234,14 @@ export async function planArchiveGroups<T extends ArchiveCandidateInput>(
       continue
     }
     // Volumes of one archive are never copies of each other.
+    const platform = detectPlatform(path.basename(candidate.gamePath))
     if (isSecondaryVolume(path.basename(candidate.gamePath))) {
       passthrough.push(candidate)
+      continue
+    }
+    // A pure Android / Korean release is not a candidate for "which copy is better".
+    if (!platform.pc && (platform.android || platform.korean)) {
+      disposable.push(candidate)
       continue
     }
     const key = candidate.dirPath.toLowerCase() + '|' + normalizeTitleKey(path.basename(candidate.gamePath))
@@ -264,5 +279,5 @@ export async function planArchiveGroups<T extends ArchiveCandidateInput>(
     )
   }
 
-  return { keep: [...passthrough, ...keep], duplicates }
+  return { keep: [...passthrough, ...keep], duplicates, disposable }
 }

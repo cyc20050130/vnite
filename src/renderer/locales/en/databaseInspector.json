@@ -90,7 +90,7 @@
   },
   "duplicates": {
     "title": "Duplicate archives",
-    "description": "Several archives of the same game, grouped while scanning. Cleaning moves the worse copy (Android only / older version / smaller) to the recycle bin.",
+    "description": "Several archives of the same game, grouped while scanning. Cleaning moves the worse copy (worse Chinese translation / older version / Android only) to the recycle bin.",
     "summary": "{{files}} files / {{size}}",
     "cleanAll": "Clean all",
     "cleanOne": "Clean",

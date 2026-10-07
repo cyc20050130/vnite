@@ -34,7 +34,8 @@ import { guessVersion, parseArchiveName } from '~/features/archive/services/titl
 import { planArchiveGroups, type DuplicateInfo } from '~/features/archive/services/duplicateResolver'
 import {
   collectArchiveVolumes,
-  mergeArchiveDuplicates
+  mergeArchiveDuplicates,
+  trashArchives
 } from '~/features/archive/services/duplicateActions'
 import { detectIncompleteArchive } from '~/features/archive/services/incompleteDetect'
 import { listArchive } from '~/features/archive/services/archiveList'
@@ -451,6 +452,17 @@ export class GameScanner extends EventEmitter {
       }
       foldersToScan = plan.keep
       const duplicatePlan = plan.duplicates
+
+      // Android-only / KR-only packages are removed outright (recycle bin), never compared.
+      if (plan.disposable.length > 0) {
+        const foreign = plan.disposable
+          .map((entry) => (entry.entryKind === 'archive' ? (entry.gamePath ?? '') : ''))
+          .filter(Boolean)
+        const removed = await trashArchives(foreign).catch(() => 0)
+        log.info(
+          '[Scanner] Removed ' + removed + ' Android/KR-only archive(s) without comparing them'
+        )
+      }
 
       // Update progress info
       scannerProgress.foldersToProcess = foldersToScan.map((f) => f.dirPath)

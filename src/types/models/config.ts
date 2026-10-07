@@ -461,7 +461,7 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
       preserveSaves: true,
       saveVaultPath: '',
       externalToolPath: '',
-      duplicatePriority: 'translation' as const,
+      duplicatePriority: 'version' as const,
       confirmCompress: true,
       batchOnFinish: 'notify' as const,
       batchConcurrency: {

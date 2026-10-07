@@ -80,6 +80,24 @@ export async function mergeArchiveDuplicates(
   }
 }
 
+/** Move whole archives (all of their volumes) to the recycle bin. */
+export async function trashArchives(paths: string[]): Promise<number> {
+  let trashed = 0
+  for (const target of paths) {
+    try {
+      if (!(await fse.pathExists(target))) continue
+      for (const volume of await collectArchiveVolumes(target)) {
+        if (await fse.pathExists(volume)) await shell.trashItem(volume)
+      }
+      trashed++
+      log.info('[Archive] Trashed foreign-platform archive ' + target)
+    } catch (error) {
+      log.warn('[Archive] Failed to trash ' + target + ': ' + String(error))
+    }
+  }
+  return trashed
+}
+
 /** Move the recorded duplicate archives to the system recycle bin. */
 export async function trashDuplicateArchives(
   gameId: string,
