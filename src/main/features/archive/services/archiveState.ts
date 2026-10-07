@@ -542,6 +542,26 @@ export async function getArchiveStatus(gameId: string): Promise<ArchiveStatus | 
   }
 }
 
+/**
+ * Put an archive game back into its packed form when it is currently extracted.
+ * Used where the (now cancelled) "give the game its own folder" step used to run, and by the
+ * panel button: an extracted game is simply compressed again.
+ */
+export async function compressIfExtracted(gameId: string): Promise<boolean> {
+  try {
+    const local = await GameDBManager.getExistingGameLocal(gameId)
+    if (!local?.archive?.enabled) return false
+    if (local.archive.state !== 'extracted') return false
+    const extractDir = local.archive.extractDir
+    if (!extractDir || !(await fse.pathExists(extractDir))) return false
+    await compressGame(gameId)
+    return true
+  } catch (error) {
+    log.warn('[Archive] compressIfExtracted failed for ' + gameId + ': ' + String(error))
+    return false
+  }
+}
+
 /** Called when a session ends: re-compress if the game is marked finished and auto-compress is on. */
 export async function archiveOnSessionEnd(gameId: string): Promise<void> {
   try {

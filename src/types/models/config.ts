@@ -451,7 +451,7 @@ export const DEFAULT_CONFIG_VALUES: Readonly<configDocs> = {
       enabled: true,
       scanArchives: true,
       aggregateSearch: false,
-      archiveInFolder: true,
+      archiveInFolder: false,
       defaultExtractRoot: '',
       compressFormat: 'auto' as const,
       keepArchiveAfterExtract: false,

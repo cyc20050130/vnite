@@ -57,6 +57,11 @@ async function doSyncArchiveFolder(gameId: string): Promise<SyncArchiveFolderRes
     to: '',
     reason
   })
+  // Feature cancelled on request: archives are no longer moved into a folder of their own.
+  // Kept as a no-op so every caller (settings, rename, scan) simply falls back to the old
+  // behaviour instead of creating folders again.
+  return empty('disabled')
+  // eslint-disable-next-line no-unreachable
   try {
     const game = await GameDBManager.getGame(gameId)
     const local = await GameDBManager.getGameLocal(gameId)

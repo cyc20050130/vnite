@@ -17,6 +17,7 @@ import {
   isPathWithinRoot
 } from '~/utils'
 import { classifyArchive } from '~/features/archive/services/archiveDetect'
+import { compressIfExtracted } from '~/features/archive/services/archiveState'
 
 /** Total size of the given files, ignoring the ones we cannot read. */
 async function sumPaths(paths: string[]): Promise<number> {
@@ -43,7 +44,6 @@ import {
 } from '~/features/archive/services/duplicateActions'
 import { detectIncompleteArchive } from '~/features/archive/services/incompleteDetect'
 import { listArchive } from '~/features/archive/services/archiveList'
-import { syncArchiveFolder } from '~/features/archive/services/archiveLayout'
 import { isChineseName, isPlaceholderTitle } from '~/features/scraper/services/nameMatch'
 import { addGameToDB } from './adder'
 
@@ -95,6 +95,12 @@ export async function purgeGamesUnderFolder(folderPath: string): Promise<number>
     })
     if (!inside) continue
     try {
+      // Cleanup for a folder that leaves the scanner: an extracted game goes back to its
+      // packed form (so nothing is left unpacked behind), and the wrapper folder some games
+      // were put in is dissolved by moving the archive back out.
+      if (local?.archive?.enabled && local.archive.state === 'extracted') {
+        await compressIfExtracted(gameId)
+      }
       await GameDBManager.removeGame(gameId)
       removed++
       log.info('[Scanner] Removed game record ' + gameId + ' (folder left the scanner: ' + target + ')')
@@ -587,11 +593,6 @@ export class GameScanner extends EventEmitter {
           this.countedGameIds.add(existingGameId)
           scannerProgress.scannedGames++
           this.scanProgress.scannedGames++
-        }
-        // Scanning is also what applies the folder layout, so a rescan adopts archives
-        // that were imported before the layout existed.
-        if (folder.entryKind === 'archive') {
-          await syncArchiveFolder(existingGameId).catch(() => undefined)
         }
         // Copies of a game that is already in the library must still be recorded, otherwise
         // they stay invisible forever.
