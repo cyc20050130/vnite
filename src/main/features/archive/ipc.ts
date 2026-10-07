@@ -17,6 +17,7 @@ import {
 } from './services/batchRunner'
 import type { ArchiveBatchOp } from '@appTypes/utils'
 import { switchGameArchive, trashDuplicateArchives } from './services/duplicateActions'
+import { dissolveArchiveFolders } from './services/archiveLayout'
 
 export function setupArchiveIPC(): void {
   ipcManager.handle('archive:get-status', async (_event, gameId: string) =>
@@ -67,6 +68,13 @@ export function setupArchiveIPC(): void {
     'archive:duplicates-switch',
     async (_event, gameId: string, archivePath: string, compressFirst?: boolean) =>
       switchGameArchive(gameId, archivePath, { compressFirst: Boolean(compressFirst) })
+  )
+
+  // Undo the cancelled per-game archive folders (maintenance).
+  ipcManager.handle(
+    'archive:dissolve-folders',
+    async (_event, options: { onlyUnder?: string; moveFiles: boolean }) =>
+      dissolveArchiveFolders(options)
   )
 
   ipcManager.handle('archive:get-passwords', async () => getPasswords())

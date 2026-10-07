@@ -288,6 +288,10 @@ type MainIpcEvents =
       'archive:extract': (gameId: string) => string
       'archive:compress': (gameId: string) => string
       'archive:get-passwords': () => ArchivePasswordEntry[]
+      'archive:dissolve-folders': (options: {
+        onlyUnder?: string
+        moveFiles: boolean
+      }) => { moved: number; cleared: number; skipped: number; failed: string[] }
       'archive:add-passwords': (values: string[], label?: string) => number
       'archive:remove-password': (id: string) => void
       'archive:retry-password': (gameId: string) => string

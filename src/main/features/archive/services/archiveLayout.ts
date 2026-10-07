@@ -193,3 +193,98 @@ async function persist(
     }
   }
 }
+
+/** Result of dissolving the (cancelled) per-game archive folders. */
+export interface DissolveResult {
+  moved: number
+  cleared: number
+  skipped: number
+  failed: string[]
+}
+
+/**
+ * Undo the per-game archive folder layout.
+ *
+ * moveFiles: true  -> move every volume back to the folder's parent, remove the folder when
+ *                     it ends up empty, and rewrite the stored paths.
+ * moveFiles: false -> only clear archive.folderPath and leave every file where it is.
+ * onlyUnder limits the work to games whose folder lives under that path.
+ */
+export async function dissolveArchiveFolders(options: {
+  onlyUnder?: string
+  moveFiles: boolean
+}): Promise<DissolveResult> {
+  const result: DissolveResult = { moved: 0, cleared: 0, skipped: 0, failed: [] }
+  const filter = (options.onlyUnder ?? '').trim().toLowerCase().replace(/[\\/]+$/, '')
+  const locals = ((await GameDBManager.getAllGamesLocal()) ?? {}) as Record<string, any>
+  for (const gameId of Object.keys(locals)) {
+    const archive = locals[gameId]?.archive
+    const folder: string = archive?.folderPath ?? ''
+    if (!archive?.enabled || !folder) continue
+    const lower = folder.toLowerCase()
+    if (
+      filter &&
+      !(lower === filter || lower.startsWith(filter + path.sep) || lower.startsWith(filter + '/'))
+    ) {
+      continue
+    }
+    if (!options.moveFiles) {
+      await GameDBManager.setGameLocalValue(gameId, 'archive.folderPath', '')
+      await GameDBManager.setGameLocalValue(gameId, 'archive.layoutManaged', false)
+      result.cleared++
+      log.info('[Archive] Cleared the folder field for ' + gameId + ' (' + folder + ')')
+      continue
+    }
+    const parent = path.dirname(folder)
+    const parts = (archive.parts ?? []).filter(Boolean) as string[]
+    const movedParts: string[] = []
+    let ok = true
+    for (const part of parts) {
+      if (path.dirname(part).toLowerCase() === parent.toLowerCase()) {
+        movedParts.push(part)
+        continue
+      }
+      const dest = path.join(parent, path.basename(part))
+      try {
+        if (await fse.pathExists(dest)) {
+          result.failed.push(path.basename(part) + ' (target already exists)')
+          ok = false
+          break
+        }
+        await fse.move(part, dest)
+        movedParts.push(dest)
+      } catch (error) {
+        result.failed.push(path.basename(part) + ' (' + String(error).slice(0, 70) + ')')
+        ok = false
+        break
+      }
+    }
+    if (!ok) {
+      result.skipped++
+      continue
+    }
+    try {
+      const left = await fse.readdir(folder)
+      if (left.length === 0) await fse.remove(folder)
+    } catch {
+      // the folder may already be gone or hold something we must not touch
+    }
+    await GameDBManager.setGameLocalValue(gameId, 'archive.parts', movedParts)
+    await GameDBManager.setGameLocalValue(gameId, 'archive.folderPath', '')
+    await GameDBManager.setGameLocalValue(gameId, 'archive.layoutManaged', false)
+    if (movedParts[0]) {
+      await GameDBManager.setGameLocalValue(gameId, 'path.gamePath', movedParts[0])
+    }
+    await GameDBManager.setGameLocalValue(gameId, 'utils.markPath', parent)
+    await GameDBManager.setGameValue(
+      gameId,
+      'metadata.localName',
+      (movedParts[0]
+        ? path.basename(movedParts[0], path.extname(movedParts[0]))
+        : path.basename(parent)) as never
+    )
+    result.moved++
+    log.info('[Archive] Restored ' + gameId + ' out of ' + folder)
+  }
+  return result
+}
